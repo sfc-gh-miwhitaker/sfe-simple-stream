@@ -1,0 +1,15 @@
+# Simple Stream - Streamlit in Snowflake Requirements
+# Author: SE Community
+# Purpose: Dependencies for native Snowflake Streamlit dashboard
+# Expires: 2025-12-24
+
+# NOTE: Streamlit and Snowpark are pre-installed in Snowflake Streamlit environment
+# Only specify additional visualization and data processing libraries
+
+# Visualization
+plotly>=5.17.0
+
+# Data processing (pandas and numpy are pre-installed, but we can specify versions)
+pandas>=2.0.0
+numpy>=1.24.0
+
