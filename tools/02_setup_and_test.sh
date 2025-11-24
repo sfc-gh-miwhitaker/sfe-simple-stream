@@ -170,7 +170,11 @@ CREATE USER IF NOT EXISTS SFE_INGEST_USER
 ALTER USER SFE_INGEST_USER
   SET RSA_PUBLIC_KEY = '$PUBLIC_KEY';
 
--- Grant role
+-- Create dedicated role for streaming ingestion
+CREATE ROLE IF NOT EXISTS sfe_ingest_role
+  COMMENT = 'DEMO: Minimal role for Snowpipe Streaming SDK | Expires: 2025-12-24';
+
+-- Grant role to user
 GRANT ROLE sfe_ingest_role TO USER SFE_INGEST_USER;
 
 -- Grant privileges (CRITICAL: Required for Snowpipe Streaming SDK)

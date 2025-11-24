@@ -3,6 +3,9 @@
 # Purpose: Dependencies for Snowpipe Streaming SDK event simulator
 # Expires: 2025-12-24
 
-snowflake-ingest>=2.0.0
+# Snowpipe Streaming SDK - High-performance row-based ingestion
+# Docs: https://docs.snowflake.com/en/user-guide/data-load-snowpipe-streaming-overview
+# Requirements: Python 3.9+
+snowpipe-streaming
 cryptography>=41.0.0
 

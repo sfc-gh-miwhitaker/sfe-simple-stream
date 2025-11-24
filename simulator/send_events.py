@@ -9,14 +9,13 @@ Expires: 2025-12-24
 import argparse
 import json
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, Any
 import random
 
-# Snowflake Ingest SDK imports
-from snowflake.ingest import SimpleIngestManager
-from snowflake.ingest.utils.uris import DEFAULT_SCHEME
+# Snowpipe Streaming SDK imports
+from snowflake.ingest.streaming import StreamingIngestClient
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 
@@ -36,8 +35,8 @@ def load_config() -> Dict[str, Any]:
     return config
 
 
-def load_private_key(key_path: Path) -> bytes:
-    """Load and parse private key from file"""
+def load_private_key(key_path: Path) -> str:
+    """Load and parse private key from file, return as PEM string"""
     if not key_path.exists():
         print(f"ERROR: Private key not found: {key_path}")
         print("Run ./tools/02_setup_and_test.sh to generate keys")
@@ -53,14 +52,14 @@ def load_private_key(key_path: Path) -> bytes:
         backend=default_backend()
     )
     
-    # Convert to DER format for SDK
-    private_key_der = private_key.private_bytes(
-        encoding=serialization.Encoding.DER,
+    # Convert to PEM format string for Snowpipe Streaming SDK
+    private_key_pem = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.PKCS8,
         encryption_algorithm=serialization.NoEncryption()
-    )
+    ).decode('utf-8')
     
-    return private_key_der
+    return private_key_pem
 
 
 def generate_sample_events(count: int) -> list:
@@ -73,7 +72,7 @@ def generate_sample_events(count: int) -> list:
     directions = ["entry", "exit"]
     
     events = []
-    base_time = datetime.utcnow()
+    base_time = datetime.now(timezone.utc)
     
     for i in range(count):
         event = {
@@ -96,58 +95,64 @@ def stream_events(config: Dict[str, Any], events: list) -> bool:
     
     # Load private key
     key_path = Path(__file__).parent.parent / ".secrets" / config["private_key_path"]
-    private_key_der = load_private_key(key_path)
+    private_key_pem = load_private_key(key_path)
     
-    # Initialize Ingest Manager
+    # Initialize Streaming Client
     try:
-        ingest_manager = SimpleIngestManager(
-            account=config["account"],
-            host=f"{config['account']}.snowflakecomputing.com",
-            user=config["user"],
-            pipe=f"{config['database']}.{config['schema']}.{config['pipe_name']}",
-            private_key=private_key_der
+        client = StreamingIngestClient(
+            client_name="simple_stream_simulator",
+            db_name=config["database"],
+            schema_name=config["schema"],
+            pipe_name=config["pipe_name"],
+            properties={
+                "account": config["account"],
+                "user": config["user"],
+                "role": config["role"],
+                "private_key": private_key_pem,
+                "url": f"https://{config['account']}.snowflakecomputing.com"
+            }
         )
         print(f"✓ Connected to Snowflake account: {config['account']}")
         print(f"✓ Target pipe: {config['database']}.{config['schema']}.{config['pipe_name']}")
         print()
     except Exception as e:
-        print(f"ERROR: Failed to initialize Ingest Manager")
+        print(f"ERROR: Failed to initialize Streaming Client")
         print(f"Details: {e}")
         return False
     
-    # Prepare data for ingestion
-    print(f"📤 Streaming {len(events)} events...")
-    
-    # Format events as newline-delimited JSON
-    staged_files = []
-    file_content = "\n".join([json.dumps(event) for event in events])
-    
-    # Create temporary file name
-    file_name = f"simulator_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json"
+    # Open channel for streaming
+    channel_name = f"simulator_channel_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
     
     try:
-        # Ingest data
-        response = ingest_manager.ingest_files(
-            files=[file_name],
-            data=file_content
-        )
+        print(f"📤 Opening channel: {channel_name}...")
+        channel, status = client.open_channel(channel_name)
+        print(f"✓ Channel opened successfully")
+        print()
         
-        if response and response.get('responseCode') == 'SUCCESS':
-            print(f"✓ Successfully sent {len(events)} events")
-            print(f"✓ File: {file_name}")
-            print()
-            print("=" * 70)
-            print("✅ SUCCESS - All events delivered to Snowflake")
-            print("=" * 70)
-            return True
-        else:
-            print(f"ERROR: Ingestion failed")
-            print(f"Response: {response}")
-            return False
+        # Stream events row by row
+        print(f"📤 Streaming {len(events)} events...")
+        for event in events:
+            channel.append_row(event)
+        
+        print(f"✓ Successfully sent {len(events)} events")
+        print()
+        
+        # Close channel
+        channel.close()
+        client.close()
+        
+        print("=" * 70)
+        print("✅ SUCCESS - All events delivered to Snowflake")
+        print("=" * 70)
+        return True
             
     except Exception as e:
         print(f"ERROR: Failed to stream events")
         print(f"Details: {e}")
+        try:
+            client.close()
+        except:
+            pass
         return False
 
 
@@ -173,6 +178,7 @@ def main():
     print(f"✓ Configuration loaded")
     print(f"  Account: {config['account']}")
     print(f"  User: {config['user']}")
+    print(f"  Role: {config['role']}")
     print(f"  Database: {config['database']}")
     print(f"  Schema: {config['schema']}")
     print()
