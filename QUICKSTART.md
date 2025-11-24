@@ -40,7 +40,7 @@ Expected output: All checks pass (✓)
 **Quick test:**
 1. Configure auth: `@sql/01_setup/01_configure_auth.sql`
 2. Generate RSA keys (see testing guide)
-3. Run simulator: `cd examples && ./send_events.sh`
+3. Run simulator: `cd simulator && ./send_events.sh`
 4. View data: `SELECT * FROM RAW_INGESTION.RAW_BADGE_EVENTS LIMIT 10;`
 
 ---

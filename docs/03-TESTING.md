@@ -184,7 +184,7 @@ The Snowpipe Streaming API uses key-pair authentication for enhanced security.
 
 **Unix/macOS:**
 ```bash
-cd examples
+cd .secrets
 mkdir -p keys
 openssl genrsa 2048 | openssl pkcs8 -topk8 -inform PEM -out keys/rsa_key.p8 -nocrypt
 openssl rsa -in keys/rsa_key.p8 -pubout -outform PEM > keys/rsa_key.pub
@@ -192,7 +192,7 @@ openssl rsa -in keys/rsa_key.p8 -pubout -outform PEM > keys/rsa_key.pub
 
 **Windows (PowerShell or Git Bash):**
 ```powershell
-cd examples
+cd .secrets
 mkdir keys
 openssl genrsa 2048 | openssl pkcs8 -topk8 -inform PEM -out keys/rsa_key.p8 -nocrypt
 openssl rsa -in keys/rsa_key.p8 -pubout -outform PEM > keys/rsa_key.pub
@@ -240,11 +240,11 @@ SHOW GRANTS TO ROLE sfe_ingest_role;
 ### 2.3 Setup Python Environment Manually
 
 ```bash
-cd examples
+cd .secrets
 python3 -m venv .venv
 source .venv/bin/activate  # Unix/macOS
 # .venv\Scripts\activate   # Windows
-pip install snowflake-ingest
+pip install -r ../simulator/requirements.txt
 ```
 
 ### 2.4 Create Config File Manually
@@ -269,12 +269,12 @@ Replace `myorg-myaccount` with your actual account identifier.
 ### 2.5 Run Simulator Manually
 
 ```bash
-cd examples
+cd simulator
 ./send_events.sh      # Unix/macOS
 # send_events.bat     # Windows
 ```
 
-**Expected:** `✅ SUCCESS: All events streamed successfully!`
+**Expected:** `✅ SUCCESS: All events delivered to Snowflake`
 
 ---
 
@@ -521,13 +521,13 @@ ALTER USER sfe_ingest_user
 **Cause:** Config file not created or wrong directory  
 **Fix:**
 ```bash
-cd examples
+cd .secrets
 ls config.json  # Should exist
 ```
 
-If missing, copy from template:
+If missing, run the setup script:
 ```bash
-cp config.example.json config.json
+./tools/02_setup_and_test.sh --step 4
 ```
 
 #### "Module 'snowflake' not found"
@@ -537,12 +537,11 @@ cp config.example.json config.json
 **Fix:**
 ```bash
 # Activate venv
-source .venv/bin/activate  # Unix/macOS
-.venv\Scripts\activate     # Windows
+source .secrets/.venv/bin/activate  # Unix/macOS
+.secrets\.venv\Scripts\activate     # Windows
 
 # Install SDK
-pip install -r requirements.txt
-# Or directly: pip install snowflake-ingest
+pip install -r simulator/requirements.txt
 ```
 
 #### "Connection timeout"

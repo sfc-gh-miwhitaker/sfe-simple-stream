@@ -57,10 +57,10 @@ High-speed data ingestion with Snowpipe Streaming, deployed from Git in one comm
 
 **Step 2: Generate Credentials for Vendor**
 ```bash
-cd examples
 # Generate RSA key pair for vendor
-openssl genrsa 2048 | openssl pkcs8 -topk8 -inform PEM -out vendor_key.p8 -nocrypt
-openssl rsa -in vendor_key.p8 -pubout -outform PEM > vendor_key.pub
+mkdir -p vendor_credentials
+openssl genrsa 2048 | openssl pkcs8 -topk8 -inform PEM -out vendor_credentials/vendor_key.p8 -nocrypt
+openssl rsa -in vendor_credentials/vendor_key.p8 -pubout -outform PEM > vendor_credentials/vendor_key.pub
 
 # Register vendor's public key in Snowflake (see docs/06-DATA-PROVIDER-QUICKSTART.md)
 ```
