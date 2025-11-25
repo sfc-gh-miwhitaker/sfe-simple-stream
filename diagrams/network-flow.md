@@ -1,13 +1,13 @@
 # Network Flow - Simple Stream
 
 **Author:** SE Community  
-**Created:** 2025-11-24  
-**Expires:** 2025-12-24 (30 days)  
+**Created:** 2025-11-25  
+**Expires:** 2025-12-25 (30 days)  
 **Status:** Reference Implementation
 
 ![Snowflake](https://img.shields.io/badge/Snowflake-29B5E8?style=for-the-badge&logo=snowflake&logoColor=white)
 
-⚠️ **DEMONSTRATION PROJECT** - This demo expires on 2025-12-24 to ensure users encounter current Snowflake features only.
+⚠️ **DEMONSTRATION PROJECT** - This demo expires on 2025-12-25 to ensure users encounter current Snowflake features only.
 
 **Reference Implementation:** This code demonstrates production-grade architectural patterns and best practices. Review and customize security, networking, and logic for your organization's specific requirements before deployment.
 

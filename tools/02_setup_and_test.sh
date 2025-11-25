@@ -165,14 +165,14 @@ USE ROLE SECURITYADMIN;
 
 -- Create or update user with public key
 CREATE USER IF NOT EXISTS SFE_INGEST_USER
-  COMMENT = 'DEMO: Snowpipe Streaming SDK user | Expires: 2025-12-24';
+  COMMENT = 'DEMO: Snowpipe Streaming SDK user | Expires: 2025-12-25';
 
 ALTER USER SFE_INGEST_USER
   SET RSA_PUBLIC_KEY = '$PUBLIC_KEY';
 
 -- Create dedicated role for streaming ingestion
 CREATE ROLE IF NOT EXISTS sfe_ingest_role
-  COMMENT = 'DEMO: Minimal role for Snowpipe Streaming SDK | Expires: 2025-12-24';
+  COMMENT = 'DEMO: Minimal role for Snowpipe Streaming SDK | Expires: 2025-12-25';
 
 -- Grant role to user
 GRANT ROLE sfe_ingest_role TO USER SFE_INGEST_USER;

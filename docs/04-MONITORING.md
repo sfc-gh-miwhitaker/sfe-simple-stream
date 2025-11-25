@@ -41,7 +41,7 @@ LIMIT 24;
 **Columns:**
 | Column | Description | Example |
 |--------|-------------|---------|
-| `ingestion_hour` | Truncated hour timestamp | 2024-11-24 14:00:00 |
+| `ingestion_hour` | Truncated hour timestamp | 2025-11-25 14:00:00 |
 | `event_count` | Total events ingested in hour | 600 |
 | `avg_events_per_minute` | Average rate | 10 |
 | `unique_badges` | Distinct badge IDs seen | 15 |

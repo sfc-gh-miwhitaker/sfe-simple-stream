@@ -1,8 +1,8 @@
 # Security Practices
 
 **Author:** SE Community  
-**Last Updated:** 2025-11-24  
-**Expires:** 2025-12-24
+**Last Updated:** 2025-11-25  
+**Expires:** 2025-12-25
 
 ![Snowflake](https://img.shields.io/badge/Snowflake-29B5E8?style=for-the-badge&logo=snowflake&logoColor=white)
 

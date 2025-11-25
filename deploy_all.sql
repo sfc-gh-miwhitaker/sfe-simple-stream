@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Simple Streaming Pipeline - Complete Deployment
  * 
- * ⚠️  DEMONSTRATION PROJECT - EXPIRES: 2025-12-24
+ * ⚠️  DEMONSTRATION PROJECT - EXPIRES: 2025-12-25
  * 
  * Author: SE Community
- * Created: 2025-11-24
- * Expires: 2025-12-24 (30 days)
+ * Created: 2025-11-25
+ * Expires: 2025-12-25 (30 days)
  * 
  * PURPOSE: Deploy complete Snowpipe Streaming pipeline from Git in one command
  * DEPLOYS: Git integration + infrastructure + analytics + tasks + monitoring
@@ -28,13 +28,13 @@
 
 SELECT
   CASE
-    WHEN CURRENT_DATE() > '2025-12-24'::DATE THEN
+    WHEN CURRENT_DATE() > '2025-12-25'::DATE THEN
 '
 ╔════════════════════════════════════════════════════════════════╗
 ║  ⚠️  DEMO EXPIRED                                              ║
 ╠════════════════════════════════════════════════════════════════╣
 ║                                                                ║
-║  This demonstration project expired on 2025-12-24.             ║
+║  This demonstration project expired on 2025-12-25.             ║
 ║                                                                ║
 ║  Why? To ensure you don''t encounter outdated Snowflake        ║
 ║  features or deprecated syntax.                                ║
@@ -44,25 +44,25 @@ SELECT
 ║  - Contact Snowflake SE team for updated version              ║
 ║  - Review and customize for your production needs             ║
 ║                                                                ║
-║  Created: 2025-11-24 | Expired: 2025-12-24                    ║
+║  Created: 2025-11-25 | Expired: 2025-12-25                    ║
 ║  Author: SE Community                                         ║
 ║                                                                ║
 ╚════════════════════════════════════════════════════════════════╝
 
 ⛔ DEPLOYMENT BLOCKED - Demo has expired.
 '
-    WHEN CURRENT_DATE() = '2025-12-24'::DATE THEN
-      '⚠️  WARNING: This demo expires TODAY (2025-12-24). Consider updating to latest version.'
-    WHEN DATEDIFF('day', CURRENT_DATE(), '2025-12-24'::DATE) <= 7 THEN
-      '⚠️  WARNING: This demo expires in ' || DATEDIFF('day', CURRENT_DATE(), '2025-12-24'::DATE) || ' days (2025-12-24)'
+    WHEN CURRENT_DATE() = '2025-12-25'::DATE THEN
+      '⚠️  WARNING: This demo expires TODAY (2025-12-25). Consider updating to latest version.'
+    WHEN DATEDIFF('day', CURRENT_DATE(), '2025-12-25'::DATE) <= 7 THEN
+      '⚠️  WARNING: This demo expires in ' || DATEDIFF('day', CURRENT_DATE(), '2025-12-25'::DATE) || ' days (2025-12-25)'
     ELSE
-      '✓ Demo is active. Expires in ' || DATEDIFF('day', CURRENT_DATE(), '2025-12-24'::DATE) || ' days (2025-12-24)'
+      '✓ Demo is active. Expires in ' || DATEDIFF('day', CURRENT_DATE(), '2025-12-25'::DATE) || ' days (2025-12-25)'
   END AS EXPIRATION_STATUS;
 
 -- Block deployment if expired
 SELECT
   CASE
-    WHEN CURRENT_DATE() > '2025-12-24'::DATE THEN
+    WHEN CURRENT_DATE() > '2025-12-25'::DATE THEN
       (1 / 0)  -- Force error to stop deployment
     ELSE
       1
@@ -75,7 +75,7 @@ SELECT
 USE ROLE SYSADMIN;
 
 CREATE DATABASE IF NOT EXISTS SNOWFLAKE_EXAMPLE
-  COMMENT = 'DEMO: Example projects | Author: SE Community | Expires: 2025-12-24';
+  COMMENT = 'DEMO: Example projects | Author: SE Community | Expires: 2025-12-25';
 
 CREATE SCHEMA IF NOT EXISTS SNOWFLAKE_EXAMPLE.DEMO_REPO;
 
@@ -114,11 +114,11 @@ CREATE TABLE IF NOT EXISTS DEPLOYMENT_METADATA (
   deployment_timestamp TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
   account_identifier VARCHAR(200),
   demo_expires_date DATE
-) COMMENT = 'DEMO: Deployment metadata for automation | Expires: 2025-12-24';
+) COMMENT = 'DEMO: Deployment metadata for automation | Expires: 2025-12-25';
 
 -- Store account info (silently)
 INSERT OVERWRITE INTO DEPLOYMENT_METADATA (account_identifier, demo_expires_date)
-VALUES (CURRENT_ACCOUNT(), '2025-12-24');
+VALUES (CURRENT_ACCOUNT(), '2025-12-25');
 
 -- ============================================================================
 -- VALIDATION: Single Comprehensive Query (Result Pane 2)

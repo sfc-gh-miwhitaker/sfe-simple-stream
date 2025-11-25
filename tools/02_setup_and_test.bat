@@ -216,7 +216,7 @@ echo USE ROLE SECURITYADMIN;
 echo.
 echo -- Create or update user with public key
 echo CREATE USER IF NOT EXISTS SFE_INGEST_USER
-echo   COMMENT = 'DEMO: Snowpipe Streaming SDK user ^| Expires: 2025-12-24';
+echo   COMMENT = 'DEMO: Snowpipe Streaming SDK user ^| Expires: 2025-12-25';
 echo.
 echo ALTER USER SFE_INGEST_USER
 echo   SET RSA_PUBLIC_KEY = '!PUBLIC_KEY!';

@@ -1,42 +1,16 @@
-# ⚠️ DEMO EXPIRED
-
-This demonstration project expired on 2024-12-24.
-
-## Why Expired?
-
-This demo was created to showcase Snowflake features current as of November 2024. 
-To ensure users don't encounter outdated syntax or deprecated features, we automatically 
-archive demos after 30 days.
-
-## What Now?
-
-- **For learning:** The code and documentation remain viewable (read-only)
-- **For updates:** Contact the Snowflake SE team for an updated version
-- **For production:** This was a reference implementation - review and customize for your needs
-
-## Archived Content
-
-The original README and all documentation have been preserved in the repository history.
-
----
-
-**Original Created:** 2024-11-24  
-**Expired:** 2024-12-24  
-**Author:** SE Community
 ![Reference Implementation](https://img.shields.io/badge/Reference-Implementation-blue)
-![Ready to Run](https://img.shields.io/badge/Ready%20to%20Run-No-red)
-![Expires](https://img.shields.io/badge/Expires-2025--12--24-orange)
-![Status](https://img.shields.io/badge/Status-EXPIRED-red)
+![Ready to Run](https://img.shields.io/badge/Ready%20to%20Run-Yes-green)
+![Expires](https://img.shields.io/badge/Expires-2025--12--25-orange)
 
 # Simple Stream
 
-> ⚠️ **DEMONSTRATION PROJECT - EXPIRES: 2025-12-24**  
+> ⚠️ **DEMONSTRATION PROJECT - EXPIRES: 2025-12-25**  
 > This demo uses Snowflake features current as of November 2025.  
 > After expiration, this repository will be archived and made private.
 
 **Author:** SE Community  
 **Purpose:** Reference implementation for high-speed data ingestion with Snowpipe Streaming  
-**Created:** 2025-11-24 | **Expires:** 2025-12-24 (30 days) | **Status:** ACTIVE
+**Created:** 2025-11-25 | **Expires:** 2025-12-25 (30 days) | **Status:** ACTIVE
 
 ---
 

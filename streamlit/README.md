@@ -180,5 +180,5 @@ After modifying, redeploy:
 
 **Author:** SE Community  
 **Purpose:** Real-time monitoring dashboard for Snowpipe Streaming pipeline  
-**Expires:** 2025-12-24
+**Expires:** 2025-12-25
 

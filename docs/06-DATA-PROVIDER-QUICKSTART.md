@@ -68,7 +68,7 @@ event = {
     "user_id": "USR-001",              # Required
     "zone_id": "ZONE-LOBBY-1",         # Required
     "reader_id": "RDR-101",            # Required
-    "event_timestamp": "2024-11-24T10:30:00",  # Required (ISO 8601)
+    "event_timestamp": "2025-11-25T10:30:00",  # Required (ISO 8601)
     "signal_strength": -65.5,          # Optional (dBm)
     "direction": "ENTRY"               # Optional ("ENTRY" or "EXIT")
 }
@@ -106,7 +106,7 @@ ORDER BY ingestion_time DESC;
   "user_id": "USR-001",                       // STRING - User ID
   "zone_id": "ZONE-LOBBY-1",                  // STRING - Zone/location ID
   "reader_id": "RDR-101",                     // STRING - RFID reader ID
-  "event_timestamp": "2024-11-24T10:30:00"    // STRING - ISO 8601 timestamp
+  "event_timestamp": "2025-11-25T10:30:00"    // STRING - ISO 8601 timestamp
 }
 ```
 
@@ -120,11 +120,11 @@ ORDER BY ingestion_time DESC;
 ```
 
 **Timestamp format requirements:**
-- ✅ `"2024-11-24T10:30:00"` - ISO 8601 (required)
-- ✅ `"2024-11-24T10:30:00Z"` - with timezone
-- ✅ `"2024-11-24T10:30:00-05:00"` - with offset
+- ✅ `"2025-11-25T10:30:00"` - ISO 8601 (required)
+- ✅ `"2025-11-25T10:30:00Z"` - with timezone
+- ✅ `"2025-11-25T10:30:00-05:00"` - with offset
 - ❌ `"11/24/2024 10:30 AM"` - NOT accepted
-- ❌ `"2024-11-24 10:30:00"` - NOT accepted (space instead of T)
+- ❌ `"2025-11-25 10:30:00"` - NOT accepted (space instead of T)
 
 ---
 
