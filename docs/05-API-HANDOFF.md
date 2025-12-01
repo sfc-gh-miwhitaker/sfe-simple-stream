@@ -86,7 +86,7 @@ events = [
         "user_id": "USR-001",
         "zone_id": "ZONE-LOBBY-1",
         "reader_id": "RDR-101",
-        "event_timestamp": "2025-11-25T10:30:00",
+        "event_timestamp": "2025-12-02T10:30:00",
         "signal_strength": -65.5,
         "direction": "ENTRY"
     },
@@ -95,7 +95,7 @@ events = [
         "user_id": "USR-002",
         "zone_id": "ZONE-OFFICE-201",
         "reader_id": "RDR-102",
-        "event_timestamp": "2025-11-25T10:31:00",
+        "event_timestamp": "2025-12-02T10:31:00",
         "signal_strength": -72.0,
         "direction": "EXIT"
     }
@@ -175,14 +175,14 @@ print(f"✅ Successfully sent {len(events)} events")
 | `user_id` | STRING | User identifier | `"USR-001"` | Not null, max 50 chars |
 | `zone_id` | STRING | Zone/location identifier | `"ZONE-LOBBY-1"` | Not null, max 50 chars |
 | `reader_id` | STRING | RFID reader identifier | `"RDR-101"` | Not null, max 50 chars |
-| `event_timestamp` | STRING | Event time (ISO 8601) | `"2025-11-25T10:30:00"` | ISO 8601 format required |
+| `event_timestamp` | STRING | Event time (ISO 8601) | `"2025-12-02T10:30:00"` | ISO 8601 format required |
 
 **Timestamp Format Requirements:**
-- ✅ **Accepted:** `"2025-11-25T10:30:00"` (ISO 8601)
-- ✅ **Accepted:** `"2025-11-25T10:30:00Z"` (with timezone)
-- ✅ **Accepted:** `"2025-11-25T10:30:00-05:00"` (with offset)
+- ✅ **Accepted:** `"2025-12-02T10:30:00"` (ISO 8601)
+- ✅ **Accepted:** `"2025-12-02T10:30:00Z"` (with timezone)
+- ✅ **Accepted:** `"2025-12-02T10:30:00-05:00"` (with offset)
 - ❌ **Rejected:** `"11/24/2024 10:30 AM"` (not ISO 8601)
-- ❌ **Rejected:** `"2025-11-25 10:30:00"` (space instead of T)
+- ❌ **Rejected:** `"2025-12-02 10:30:00"` (space instead of T)
 
 ### Optional Fields (Enhance with Additional Data)
 
@@ -199,7 +199,7 @@ print(f"✅ Successfully sent {len(events)} events")
   "user_id": "USR-001",
   "zone_id": "ZONE-LOBBY-1",
   "reader_id": "RDR-101",
-  "event_timestamp": "2025-11-25T10:30:00",
+  "event_timestamp": "2025-12-02T10:30:00",
   "signal_strength": -65.5,
   "direction": "ENTRY"
 }
@@ -237,7 +237,7 @@ test_event = {
     "user_id": "USR-001",
     "zone_id": "ZONE-LOBBY-1",
     "reader_id": "RDR-101",
-    "event_timestamp": "2025-11-25T10:30:00",
+    "event_timestamp": "2025-12-02T10:30:00",
     "signal_strength": -65.5,
     "direction": "ENTRY"
 }
@@ -438,7 +438,7 @@ curl -X POST \
   "https://myorg-myaccount.snowflakecomputing.com/v1/data/pipes/SNOWFLAKE_EXAMPLE.RAW_INGESTION.SFE_BADGE_EVENTS_PIPE/insertRows" \
   -H "Authorization: Bearer <jwt_token>" \
   -H "Content-Type: application/json" \
-  -d '[{"badge_id":"TEST-001","user_id":"USR-001","zone_id":"ZONE-LOBBY-1","reader_id":"RDR-101","event_timestamp":"2025-11-25T10:30:00"}]'
+  -d '[{"badge_id":"TEST-001","user_id":"USR-001","zone_id":"ZONE-LOBBY-1","reader_id":"RDR-101","event_timestamp":"2025-12-02T10:30:00"}]'
 ```
 
 **Why SDK is Better:**

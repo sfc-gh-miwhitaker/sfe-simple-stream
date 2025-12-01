@@ -40,7 +40,7 @@ USE SCHEMA RAW_INGESTION;
 -- ============================================================================
 
 CREATE STAGE IF NOT EXISTS SFE_STREAMLIT_STAGE
-  COMMENT = 'DEMO: sfe-simple-stream - Stage for Streamlit app files | Expires: 2025-12-25';
+  COMMENT = 'DEMO: sfe-simple-stream - Stage for Streamlit app files | Expires: 2026-01-01';
 
 -- ============================================================================
 -- Step 2: Copy Streamlit App from Git Repository to Stage
@@ -69,7 +69,7 @@ CREATE OR REPLACE STREAMLIT SFE_SIMPLE_STREAM_MONITOR
   ROOT_LOCATION = '@SNOWFLAKE_EXAMPLE.RAW_INGESTION.SFE_STREAMLIT_STAGE'
   MAIN_FILE = 'streamlit_app.py'
   QUERY_WAREHOUSE = 'COMPUTE_WH'
-  COMMENT = 'DEMO: sfe-simple-stream - Real-time monitoring dashboard | Expires: 2025-12-25';
+  COMMENT = 'DEMO: sfe-simple-stream - Real-time monitoring dashboard | Expires: 2026-01-01';
 
 -- ============================================================================
 -- Step 4: Grant Access Permissions

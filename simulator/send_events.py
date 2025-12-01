@@ -3,7 +3,7 @@
 Event Simulator - Snowpipe Streaming SDK
 Author: SE Community
 Purpose: Stream sample RFID badge events using Snowpipe Streaming API
-Expires: 2025-12-25
+Expires: 2026-01-01
 """
 
 import argparse

@@ -4,7 +4,7 @@ Snowflake Native Streamlit App
 
 Author: SE Community
 Purpose: Real-time monitoring dashboard for Snowpipe Streaming pipeline
-Expires: 2025-12-25
+Expires: 2026-01-01
 
 DEMO PROJECT - NOT FOR PRODUCTION USE WITHOUT REVIEW
 
@@ -105,7 +105,7 @@ page = st.sidebar.radio(
 
 st.sidebar.divider()
 st.sidebar.caption("**Demo Project**")
-st.sidebar.caption("Expires: 2025-12-25")
+st.sidebar.caption("Expires: 2026-01-01")
 st.sidebar.caption("SE Community")
 
 # ============================================================================
@@ -695,6 +695,6 @@ elif page == "📊 Query Efficiency":
 # ============================================================================
 
 st.divider()
-st.caption("**Simple Stream Monitor** | SE Community | Demo Project - Expires 2025-12-25")
+st.caption("**Simple Stream Monitor** | SE Community | Demo Project - Expires 2026-01-01")
 st.caption("🔄 Dashboard auto-refreshes every 60 seconds | Click 'Refresh Now' for immediate update")
 

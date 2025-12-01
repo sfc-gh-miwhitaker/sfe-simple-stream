@@ -213,7 +213,7 @@ USE ROLE SECURITYADMIN;
 
 -- Create service account
 CREATE USER IF NOT EXISTS SFE_INGEST_USER
-  COMMENT = 'DEMO: Snowpipe Streaming SDK user | Expires: 2025-12-25';
+  COMMENT = 'DEMO: Snowpipe Streaming SDK user | Expires: 2026-01-01';
 
 -- Register public key (paste contents of keys/rsa_key.pub)
 ALTER USER SFE_INGEST_USER
