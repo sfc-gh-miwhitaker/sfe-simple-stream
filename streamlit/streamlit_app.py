@@ -99,7 +99,8 @@ page = st.sidebar.radio(
         "⏱️ Pipeline Health",
         "💰 Cost Tracking",
         "🔧 Task Performance",
-        "📊 Query Efficiency"
+        "📊 Query Efficiency",
+        "🔌 Client Metrics"
     ]
 )
 
@@ -689,6 +690,104 @@ elif page == "📊 Query Efficiency":
     
     except Exception as e:
         st.error(f"Error loading query efficiency: {str(e)}")
+
+# ============================================================================
+# Page: Client Metrics
+# ============================================================================
+
+elif page == "🔌 Client Metrics":
+    st.header("Streaming Client Metrics")
+    st.caption("Client-side SDK ingestion metrics (SNOWPIPE_STREAMING_CLIENT_HISTORY)")
+    
+    try:
+        client_df = query_snowflake("""
+            SELECT * FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_STREAMING_CLIENT_METRICS
+            ORDER BY INGESTION_DATE DESC
+            LIMIT 30
+        """)
+        
+        if not client_df.empty:
+            # Summary metrics
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                total_credits = client_df['TOTAL_CLIENT_CREDITS'].sum()
+                st.metric("Total Client Credits (30d)", f"{total_credits:.4f}")
+            
+            with col2:
+                total_gb = client_df['TOTAL_GB_SENT'].sum()
+                st.metric("Total GB Sent", f"{total_gb:.2f}")
+            
+            with col3:
+                total_rows = client_df['TOTAL_ROWS_SENT'].sum()
+                st.metric("Total Rows Sent", f"{total_rows:,.0f}")
+            
+            with col4:
+                total_sessions = client_df['SESSION_COUNT'].sum()
+                st.metric("Total Sessions", f"{total_sessions:,.0f}")
+            
+            st.divider()
+            
+            # Credits over time by client
+            st.subheader("💰 Client Credits Over Time")
+            
+            fig = px.area(
+                client_df.sort_values('INGESTION_DATE'),
+                x='INGESTION_DATE',
+                y='TOTAL_CLIENT_CREDITS',
+                color='CLIENT_NAME',
+                title='Daily Client Credits by SDK Client',
+                labels={'TOTAL_CLIENT_CREDITS': 'Credits', 'INGESTION_DATE': 'Date'}
+            )
+            st.plotly_chart(fig, use_container_width=True)
+            
+            # Rows sent over time
+            st.subheader("📤 Rows Sent Over Time")
+            
+            fig = px.bar(
+                client_df.sort_values('INGESTION_DATE'),
+                x='INGESTION_DATE',
+                y='TOTAL_ROWS_SENT',
+                color='CLIENT_NAME',
+                title='Daily Rows Sent by SDK Client',
+                labels={'TOTAL_ROWS_SENT': 'Rows', 'INGESTION_DATE': 'Date'},
+            )
+            st.plotly_chart(fig, use_container_width=True)
+            
+            # Session duration analysis
+            st.subheader("⏱️ Session Duration Analysis")
+            
+            fig = px.scatter(
+                client_df.sort_values('INGESTION_DATE'),
+                x='INGESTION_DATE',
+                y='AVG_SESSION_DURATION_SECONDS',
+                size='SESSION_COUNT',
+                color='CLIENT_NAME',
+                title='Average Session Duration Over Time',
+                labels={
+                    'AVG_SESSION_DURATION_SECONDS': 'Avg Duration (s)',
+                    'INGESTION_DATE': 'Date',
+                    'SESSION_COUNT': 'Sessions'
+                }
+            )
+            st.plotly_chart(fig, use_container_width=True)
+            
+            # Detailed table
+            st.subheader("📋 Detailed Client Metrics")
+            st.dataframe(
+                client_df[[
+                    'CLIENT_NAME', 'INGESTION_DATE', 'SESSION_COUNT',
+                    'TOTAL_CLIENT_CREDITS', 'TOTAL_GB_SENT', 'TOTAL_ROWS_SENT',
+                    'AVG_MB_PER_SESSION', 'AVG_SESSION_DURATION_SECONDS'
+                ]],
+                use_container_width=True,
+                hide_index=True
+            )
+        else:
+            st.info("No client metrics available. Data appears after SDK ingestion activity.")
+    
+    except Exception as e:
+        st.error(f"Error loading client metrics: {str(e)}")
 
 # ============================================================================
 # Footer

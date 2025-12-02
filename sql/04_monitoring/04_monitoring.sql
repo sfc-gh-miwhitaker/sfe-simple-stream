@@ -16,6 +16,7 @@
  *   5. V_PARTITION_EFFICIENCY: Query performance metrics (QUERY_HISTORY)
  *   6. V_STREAMING_COSTS: Cost tracking with actual credits (FILE_MIGRATION_HISTORY)
  *   7. V_TASK_EXECUTION_HISTORY: Task performance (TASK_HISTORY)
+ *   8. V_STREAMING_CLIENT_METRICS: Client-side ingestion metrics (CLIENT_HISTORY)
  * 
  * WARNING:  NOTE: ACCOUNT_USAGE views have latency (up to 120 minutes).
  *     V_CHANNEL_STATUS and V_STREAMING_COSTS use FILE_MIGRATION_HISTORY.
@@ -254,6 +255,32 @@ WHERE database_name = 'SNOWFLAKE_EXAMPLE'
 ORDER BY scheduled_time DESC;
 
 -- ============================================================================
+-- View 8: Streaming Client Metrics (High-Performance SDK)
+-- ============================================================================
+-- Provides client-side ingestion metrics for Snowpipe Streaming SDK
+-- Complements FILE_MIGRATION_HISTORY with client-level detail
+-- See: https://docs.snowflake.com/en/sql-reference/account-usage/snowpipe_streaming_client_history
+
+CREATE OR REPLACE VIEW V_STREAMING_CLIENT_METRICS
+COMMENT = 'DEMO: sfe-simple-stream - Client-side ingestion metrics from SNOWPIPE_STREAMING_CLIENT_HISTORY'
+AS
+SELECT 
+    client_name,
+    DATE(start_time) AS ingestion_date,
+    COUNT(*) AS session_count,
+    SUM(credits_used) AS total_client_credits,
+    SUM(data_sent_bytes) / POWER(1024, 3) AS total_gb_sent,
+    AVG(data_sent_bytes) / POWER(1024, 2) AS avg_mb_per_session,
+    SUM(rows_sent) AS total_rows_sent,
+    AVG(DATEDIFF('second', start_time, end_time)) AS avg_session_duration_seconds,
+    MIN(start_time) AS earliest_session,
+    MAX(end_time) AS latest_session
+FROM SNOWFLAKE.ACCOUNT_USAGE.SNOWPIPE_STREAMING_CLIENT_HISTORY
+WHERE start_time >= DATEADD('day', -30, CURRENT_TIMESTAMP())
+GROUP BY client_name, DATE(start_time)
+ORDER BY ingestion_date DESC, client_name;
+
+-- ============================================================================
 -- Verify view creation
 -- ============================================================================
 
@@ -287,5 +314,10 @@ SHOW VIEWS LIKE 'V_%' IN SCHEMA RAW_INGESTION;
 --   FROM V_TASK_EXECUTION_HISTORY
 --   WHERE execution_status = 'SUCCESS'
 --   GROUP BY task_name;
+-- 
+-- Track client SDK metrics:
+--   SELECT client_name, SUM(total_client_credits) AS credits, SUM(total_rows_sent) AS rows
+--   FROM V_STREAMING_CLIENT_METRICS
+--   GROUP BY client_name;
 -- ============================================================================
 

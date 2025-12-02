@@ -1,9 +1,22 @@
 #!/usr/bin/env python3
 """
-Event Simulator - Snowpipe Streaming SDK
+Event Simulator - Snowpipe Streaming SDK (High-Performance Architecture)
+
 Author: SE Community
 Purpose: Stream sample RFID badge events using Snowpipe Streaming API
 Expires: 2026-01-01
+
+SDK REQUIREMENTS:
+    Package: snowpipe-streaming (high-performance SDK with Rust core)
+    Install: pip install snowpipe-streaming
+    Python:  3.9+
+    
+    This simulator uses the high-performance Snowpipe Streaming SDK which:
+    - Ingests data through PIPE objects (not directly to tables)
+    - Uses appendRow/appendRows API (not insertRow/insertRows)
+    - Provides server-side validation with richer error feedback
+    
+    Docs: https://docs.snowflake.com/en/user-guide/data-load-snowpipe-streaming-overview
 """
 
 import argparse
@@ -11,10 +24,11 @@ import json
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, List
 import random
 
-# Snowpipe Streaming SDK imports
+# Snowpipe Streaming SDK imports (high-performance architecture)
+# Package: snowpipe-streaming (pip install snowpipe-streaming)
 from snowflake.ingest.streaming import StreamingIngestClient
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
@@ -62,24 +76,44 @@ def load_private_key(key_path: Path) -> str:
     return private_key_pem
 
 
-def generate_sample_events(count: int) -> list:
-    """Generate sample RFID badge scan events"""
+def generate_sample_events(count: int) -> List[Dict[str, Any]]:
+    """
+    Generate sample RFID badge scan events.
+    
+    Event schema matches PIPE transformation in sql/02_core/01_core.sql:
+    - badge_id: Badge identifier
+    - user_id: User identifier
+    - zone_id: Zone where scan occurred
+    - reader_id: Reader device identifier
+    - event_timestamp: ISO 8601 timestamp (required format for PIPE)
+    - signal_strength: RFID signal strength in dBm
+    - direction: 'entry' or 'exit'
+    """
     
     # Sample data pools
     badge_ids = [f"BADGE-{str(i).zfill(4)}" for i in range(1, 51)]
     user_ids = ["USR-001", "USR-002", "USR-003", "USR-004", "USR-005"]
-    zone_ids = ["ZONE-LOBBY-1", "ZONE-OFFICE-201", "ZONE-LAB-301", "ZONE-EXIT-1"]
+    zone_reader_map = {
+        "ZONE-LOBBY-1": "RDR-101",
+        "ZONE-OFFICE-2A": "RDR-201",
+        "ZONE-SERVER-B1": "RDR-B101",
+        "ZONE-CONF-3B": "RDR-301",
+        "ZONE-PARKING-1": "RDR-P01"
+    }
+    zone_ids = list(zone_reader_map.keys())
     directions = ["entry", "exit"]
     
     events = []
     base_time = datetime.now(timezone.utc)
     
     for i in range(count):
+        zone_id = random.choice(zone_ids)
         event = {
             "badge_id": random.choice(badge_ids),
             "user_id": random.choice(user_ids),
-            "zone_id": random.choice(zone_ids),
-            "timestamp": (base_time - timedelta(seconds=i*5)).isoformat(),
+            "zone_id": zone_id,
+            "reader_id": zone_reader_map[zone_id],
+            "event_timestamp": (base_time - timedelta(seconds=i*5)).isoformat(),
             "signal_strength": random.randint(-85, -30),
             "direction": random.choice(directions)
         }
@@ -88,10 +122,10 @@ def generate_sample_events(count: int) -> list:
     return events
 
 
-def stream_events(config: Dict[str, Any], events: list) -> bool:
-    """Stream events using Snowpipe Streaming API"""
+def stream_events(config: Dict[str, Any], events: List[Dict[str, Any]]) -> bool:
+    """Stream events using Snowpipe Streaming API (high-performance architecture)"""
     
-    print(f"📡 Initializing Snowpipe Streaming SDK...")
+    print("📡 Initializing Snowpipe Streaming SDK...")
     
     # Load private key
     key_path = Path(__file__).parent.parent / ".secrets" / config["private_key_path"]
@@ -116,7 +150,7 @@ def stream_events(config: Dict[str, Any], events: list) -> bool:
         print(f"✓ Target pipe: {config['database']}.{config['schema']}.{config['pipe_name']}")
         print()
     except Exception as e:
-        print(f"ERROR: Failed to initialize Streaming Client")
+        print("ERROR: Failed to initialize Streaming Client")
         print(f"Details: {e}")
         return False
     
@@ -126,7 +160,7 @@ def stream_events(config: Dict[str, Any], events: list) -> bool:
     try:
         print(f"📤 Opening channel: {channel_name}...")
         channel, status = client.open_channel(channel_name)
-        print(f"✓ Channel opened successfully")
+        print("✓ Channel opened successfully")
         print()
         
         # Stream events row by row
@@ -147,11 +181,11 @@ def stream_events(config: Dict[str, Any], events: list) -> bool:
         return True
             
     except Exception as e:
-        print(f"ERROR: Failed to stream events")
+        print("ERROR: Failed to stream events")
         print(f"Details: {e}")
         try:
             client.close()
-        except:
+        except Exception:
             pass
         return False
 
@@ -175,7 +209,7 @@ def main():
     print()
     
     config = load_config()
-    print(f"✓ Configuration loaded")
+    print("✓ Configuration loaded")
     print(f"  Account: {config['account']}")
     print(f"  User: {config['user']}")
     print(f"  Role: {config['role']}")
@@ -202,7 +236,7 @@ def main():
         print(f"     SELECT COUNT(*) FROM {config['database']}.{config['schema']}.RAW_BADGE_EVENTS;")
         print()
         print("  2. Check monitoring views:")
-        print(f"     SELECT * FROM {config['database']}.{config['schema']}.V_INGESTION_HEALTH;")
+        print(f"     SELECT * FROM {config['database']}.{config['schema']}.V_INGESTION_METRICS;")
         print()
         sys.exit(0)
     else:
@@ -217,4 +251,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

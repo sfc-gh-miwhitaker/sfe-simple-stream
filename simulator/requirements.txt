@@ -1,7 +1,7 @@
 # Simple Stream - Event Simulator Requirements
 # Author: SE Community
 # Purpose: Dependencies for Snowpipe Streaming SDK event simulator
-# Expires: 2025-12-24
+# Expires: 2026-01-01
 
 # Snowpipe Streaming SDK - High-performance row-based ingestion
 # Docs: https://docs.snowflake.com/en/user-guide/data-load-snowpipe-streaming-overview

@@ -8,12 +8,11 @@
  *   Deploy real-time monitoring dashboard as native Snowflake Streamlit app
  * 
  * OBJECTS CREATED:
- *   - Stage: SFE_STREAMLIT_STAGE (for app files)
  *   - Streamlit App: SFE_SIMPLE_STREAM_MONITOR
  * 
  * DEPLOYMENT METHOD:
- *   Uses Git integration to pull streamlit_app.py directly from repository
- *   No manual file uploads required
+ *   Uses Git integration with FROM clause to deploy directly from repository
+ *   No staging or file copying required - enables Git sync and multi-file editing
  * 
  * ACCESS:
  *   After deployment, access app via Snowsight:
@@ -36,43 +35,23 @@ USE DATABASE SNOWFLAKE_EXAMPLE;
 USE SCHEMA RAW_INGESTION;
 
 -- ============================================================================
--- Step 1: Create Stage for Streamlit App Files
+-- Create Streamlit App (Direct from Git Repository)
 -- ============================================================================
-
-CREATE STAGE IF NOT EXISTS SFE_STREAMLIT_STAGE
-  COMMENT = 'DEMO: sfe-simple-stream - Stage for Streamlit app files | Expires: 2026-01-01';
-
--- ============================================================================
--- Step 2: Copy Streamlit App from Git Repository to Stage
--- ============================================================================
-
--- Copy streamlit_app.py from Git repo to stage
-COPY FILES
-  INTO @SFE_STREAMLIT_STAGE
-  FROM @SNOWFLAKE_EXAMPLE.DEMO_REPO.sfe_simple_stream_repo/branches/main/streamlit/
-  FILES = ('streamlit_app.py');
-
--- Copy requirements.txt for dependencies
-COPY FILES
-  INTO @SFE_STREAMLIT_STAGE
-  FROM @SNOWFLAKE_EXAMPLE.DEMO_REPO.sfe_simple_stream_repo/branches/main/streamlit/
-  FILES = ('requirements.txt');
-
--- Verify files are in stage
-LIST @SFE_STREAMLIT_STAGE;
-
--- ============================================================================
--- Step 3: Create Streamlit App
--- ============================================================================
+-- Uses modern FROM syntax instead of legacy ROOT_LOCATION
+-- Benefits:
+--   - Git integration supported (changes sync automatically)
+--   - Multi-file editing in Snowsight
+--   - No staging or COPY FILES required
+--   - Future-proofed (ROOT_LOCATION is deprecated)
 
 CREATE OR REPLACE STREAMLIT SFE_SIMPLE_STREAM_MONITOR
-  ROOT_LOCATION = '@SNOWFLAKE_EXAMPLE.RAW_INGESTION.SFE_STREAMLIT_STAGE'
+  FROM @SNOWFLAKE_EXAMPLE.DEMO_REPO.sfe_simple_stream_repo/branches/main/streamlit/
   MAIN_FILE = 'streamlit_app.py'
   QUERY_WAREHOUSE = 'COMPUTE_WH'
   COMMENT = 'DEMO: sfe-simple-stream - Real-time monitoring dashboard | Expires: 2026-01-01';
 
 -- ============================================================================
--- Step 4: Grant Access Permissions
+-- Grant Access Permissions
 -- ============================================================================
 
 -- Grant usage on Streamlit app to SYSADMIN role
@@ -106,9 +85,9 @@ SELECT '
 ║  2. Navigate to: Projects > Streamlit                         ║
 ║  3. Click: SFE_SIMPLE_STREAM_MONITOR                          ║
 ║                                                                ║
-║  🔄 TO UPDATE:                                                 ║
-║  1. Update streamlit_app.py in Git repository                 ║
-║  2. Re-run this script to deploy latest version              ║
+║  🔄 TO UPDATE (Git Sync Enabled):                              ║
+║  1. Commit changes to streamlit_app.py in Git                 ║
+║  2. Changes sync automatically - no re-deployment needed!     ║
 ║                                                                ║
 ║  📈 FEATURES:                                                  ║
 ║  - Real-time pipeline health monitoring                       ║
@@ -129,8 +108,8 @@ SELECT '
 -- ============================================================================
 -- 
 -- Issue: "Streamlit app not found"
--- Solution: Verify stage contains files:
---   LIST @SFE_STREAMLIT_STAGE;
+-- Solution: Verify Git repository is configured:
+--   SHOW GIT REPOSITORIES IN SCHEMA DEMO_REPO;
 -- 
 -- Issue: "Permission denied"
 -- Solution: Grant access to your role:
