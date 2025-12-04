@@ -1,55 +1,5 @@
-# ⚠️ DEMO EXPIRED
-
-This demonstration project expired on 2024-12-24.
-
-## Why Expired?
-
-This demo was created to showcase Snowflake features current as of November 2024. 
-To ensure users don't encounter outdated syntax or deprecated features, we automatically 
-archive demos after 30 days.
-
-## What Now?
-
-- **For learning:** The code and documentation remain viewable (read-only)
-- **For updates:** Contact the Snowflake SE team for an updated version
-- **For production:** This was a reference implementation - review and customize for your needs
-
-## Archived Content
-
-The original README and all documentation have been preserved in the repository history.
-
----
-
-**Original Created:** 2024-11-24  
-**Expired:** 2024-12-24  
-**Author:** SE Community
-# ⚠️ DEMO EXPIRED
-
-This demonstration project expired on 2024-12-24.
-
-## Why Expired?
-
-This demo was created to showcase Snowflake features current as of November 2024. 
-To ensure users don't encounter outdated syntax or deprecated features, we automatically 
-archive demos after 30 days.
-
-## What Now?
-
-- **For learning:** The code and documentation remain viewable (read-only)
-- **For updates:** Contact the Snowflake SE team for an updated version
-- **For production:** This was a reference implementation - review and customize for your needs
-
-## Archived Content
-
-The original README and all documentation have been preserved in the repository history.
-
----
-
-**Original Created:** 2024-11-24  
-**Expired:** 2024-12-24  
-**Author:** SE Community
 ![Reference Implementation](https://img.shields.io/badge/Reference-Implementation-blue)
-![Ready to Run](https://img.shields.io/badge/Ready%20to%20Run-No-red)
+![Ready to Run](https://img.shields.io/badge/Ready%20to%20Run-Yes-green)
 ![Expires](https://img.shields.io/badge/Expires-2026--01--01-orange)
 
 # Simple Stream
@@ -137,8 +87,8 @@ A complete streaming pipeline with:
 - **Snowpipe Streaming SDK** for high-throughput ingestion (Rust-based core, official Snowflake library)
 - **Automated CDC tasks** (deduplication, enrichment) running every minute
 - **Dimensional model** (users, zones, facts) with Type 2 SCDs
-- **Real-time monitoring views** (7 built-in SQL views)
-- **📊 Interactive Streamlit dashboard** (native Snowflake, 6 monitoring pages, auto-refresh)
+- **Real-time monitoring views** (8 built-in SQL views)
+- **📊 Interactive Streamlit dashboard** (native Snowflake, 7 monitoring pages, auto-refresh)
 - **Git-based deployment** (no manual file uploads)
 - **Simplified authentication** (SDK handles all JWT complexity automatically)
 
@@ -185,16 +135,18 @@ Snowpipe Streaming SDK → RAW Table → Stream → Tasks → Staging → Analyt
 - Pre-seeded sample data for testing
 
 ### 5. Built-in Monitoring
-- **📊 Interactive Streamlit Dashboard** (native Snowflake, 6 pages)
+- **📊 Interactive Streamlit Dashboard** (native Snowflake, 7 pages)
   - Real-time pipeline health indicators
   - Ingestion metrics with interactive charts
   - Cost tracking and optimization insights
   - Task execution monitoring
   - Query performance analytics
-- **7 SQL Monitoring Views** (programmatic access)
+  - Client SDK metrics
+- **8 SQL Monitoring Views** (programmatic access)
   - Ingestion metrics (rate, volume, trends)
   - Cost tracking and estimates
   - Data quality metrics
+  - Client-side SDK metrics
 
 ---
 
@@ -243,7 +195,7 @@ cd examples
 | | sfe_badge_events_stream | CDC stream |
 | | sfe_badge_events_pipe | Streaming endpoint |
 | | 2 tasks | Automation (suspended until activated) |
-| | 7 views | Monitoring dashboards |
+| | 8 views | Monitoring dashboards |
 | `STAGING_LAYER` | STG_BADGE_EVENTS | Deduplicated events |
 | `ANALYTICS_LAYER` | DIM_USERS, DIM_ZONES | Dimensions (Type 2 SCD) |
 | | FCT_ACCESS_EVENTS | Fact table (clustered) |
@@ -269,13 +221,14 @@ cd examples
 
 **Access:** Snowsight > Projects > Streamlit > `SFE_SIMPLE_STREAM_MONITOR`
 
-**6 Interactive Pages:**
+**7 Interactive Pages:**
 - 🎯 **Overview** - System health, KPIs, pipeline status
 - 📈 **Ingestion Metrics** - Throughput charts, signal quality trends
 - ⏱️ **Pipeline Health** - Layer-by-layer latency monitoring
 - 💰 **Cost Tracking** - 30-day credit consumption analysis
 - 🔧 **Task Performance** - Execution history, success rates
 - 📊 **Query Efficiency** - Partition pruning analytics
+- 🔌 **Client Metrics** - SDK client-side performance
 
 **Dashboard guide:** [`docs/07-STREAMLIT-DASHBOARD.md`](docs/07-STREAMLIT-DASHBOARD.md)
 
@@ -303,6 +256,9 @@ SELECT * FROM RAW_INGESTION.V_DATA_QUALITY_METRICS;
 -- Cost tracking
 SELECT * FROM RAW_INGESTION.V_STREAMING_COSTS
 ORDER BY cost_date DESC LIMIT 30;
+
+-- Client SDK metrics
+SELECT * FROM RAW_INGESTION.V_STREAMING_CLIENT_METRICS;
 ```
 
 **Full SQL monitoring guide:** [`docs/04-MONITORING.md`](docs/04-MONITORING.md)

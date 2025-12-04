@@ -1,7 +1,7 @@
 # Simple Stream - Streamlit in Snowflake Requirements
 # Author: SE Community
 # Purpose: Dependencies for native Snowflake Streamlit dashboard
-# Expires: 2025-12-24
+# Expires: 2026-01-01
 
 # NOTE: Streamlit and Snowpark are pre-installed in Snowflake Streamlit environment
 # Only specify additional visualization and data processing libraries

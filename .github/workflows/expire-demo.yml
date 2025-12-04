@@ -1,8 +1,8 @@
 name: Demo Expiration Check
 
 # This workflow automatically archives and makes the repository private after 30 days
-# Expiration Date: 2024-12-24
-# Created: 2024-11-24
+# Expiration Date: 2026-01-01
+# Created: 2025-12-02
 
 on:
   schedule:
@@ -21,7 +21,7 @@ jobs:
       - name: Check expiration date
         id: check_date
         run: |
-          EXPIRATION_DATE="2024-12-24"
+          EXPIRATION_DATE="2026-01-01"
           CURRENT_DATE=$(date +%Y-%m-%d)
           
           echo "Current date: $CURRENT_DATE"
@@ -50,11 +50,11 @@ jobs:
           cat > EXPIRED.md << 'EOF'
           # ⚠️ DEMO EXPIRED
           
-          This demonstration project expired on 2024-12-24.
+          This demonstration project expired on 2026-01-01.
           
           ## Why Expired?
           
-          This demo was created to showcase Snowflake features current as of November 2024. 
+          This demo was created to showcase Snowflake features current as of December 2025. 
           To ensure users don't encounter outdated syntax or deprecated features, we automatically 
           archive demos after 30 days.
           
@@ -70,8 +70,8 @@ jobs:
           
           ---
           
-          **Original Created:** 2024-11-24  
-          **Expired:** 2024-12-24  
+          **Original Created:** 2025-12-02  
+          **Expired:** 2026-01-01  
           **Author:** SE Community
           EOF
           
@@ -128,7 +128,7 @@ jobs:
           # Create an issue to notify maintainers
           gh issue create \
             --title "Demo Expired - Repository Archived" \
-            --body "This demo has reached its 30-day expiration date (2024-12-24) and has been automatically archived and made private. The repository is now read-only. If you need an updated version, please create a new demo with current Snowflake features." \
+            --body "This demo has reached its 30-day expiration date (2026-01-01) and has been automatically archived and made private. The repository is now read-only. If you need an updated version, please create a new demo with current Snowflake features." \
             --label "expired"
           
           echo "✓ Expiration issue created"
