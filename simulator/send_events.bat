@@ -1,7 +1,7 @@
 @echo off
 REM ##############################################################################
 REM Event Simulator - Windows Wrapper
-REM 
+REM
 REM PURPOSE: Activate virtual environment and run Python event simulator
 REM USAGE: send_events.bat [--count N]
 REM ##############################################################################
@@ -28,4 +28,3 @@ cd /d "%SCRIPT_DIR%"
 python send_events.py %*
 
 endlocal
-

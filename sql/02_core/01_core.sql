@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Core Infrastructure
- * 
+ *
  * Author: SE Community
  * Created: 2025-12-02
- * Expires: 2026-01-01
- * 
+ * Expires: 2026-02-05
+ *
  * Creates: Database, schemas, raw table, pipe, stream
  * Time: 10 seconds
  ******************************************************************************/
@@ -13,13 +13,13 @@ USE ROLE SYSADMIN;
 USE DATABASE SNOWFLAKE_EXAMPLE;
 
 CREATE SCHEMA IF NOT EXISTS RAW_INGESTION
-  COMMENT = 'DEMO: Raw landing layer | Author: SE Community | Expires: 2026-01-01';
+  COMMENT = 'DEMO: Raw landing layer | Author: SE Community | Expires: 2026-02-05';
 
 CREATE SCHEMA IF NOT EXISTS STAGING_LAYER
-  COMMENT = 'DEMO: Deduplication layer | Author: SE Community | Expires: 2026-01-01';
+  COMMENT = 'DEMO: Deduplication layer | Author: SE Community | Expires: 2026-02-05';
 
 CREATE SCHEMA IF NOT EXISTS ANALYTICS_LAYER
-  COMMENT = 'DEMO: Analytics layer | Author: SE Community | Expires: 2026-01-01';
+  COMMENT = 'DEMO: Analytics layer | Author: SE Community | Expires: 2026-02-05';
 
 USE SCHEMA RAW_INGESTION;
 
@@ -36,11 +36,11 @@ CREATE OR REPLACE TABLE RAW_BADGE_EVENTS (
     ingestion_time TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
     raw_json VARIANT
 )
-COMMENT = 'DEMO: RFID badge events from Snowpipe Streaming REST API | Author: SE Community | Expires: 2026-01-01';
+COMMENT = 'DEMO: RFID badge events from Snowpipe Streaming REST API | Author: SE Community | Expires: 2026-02-05';
 
 -- Snowpipe with JSON transformation
 CREATE OR REPLACE PIPE sfe_badge_events_pipe
-  COMMENT = 'DEMO: Snowpipe Streaming endpoint | Author: SE Community | Expires: 2026-01-01'
+  COMMENT = 'DEMO: Snowpipe Streaming endpoint | Author: SE Community | Expires: 2026-02-05'
 AS COPY INTO RAW_BADGE_EVENTS
 FROM (
   SELECT
@@ -64,4 +64,4 @@ FROM (
 -- CDC stream for downstream processing
 CREATE OR REPLACE STREAM sfe_badge_events_stream
 ON TABLE RAW_BADGE_EVENTS
-COMMENT = 'DEMO: Change data capture stream | Author: SE Community | Expires: 2026-01-01';
+COMMENT = 'DEMO: Change data capture stream | Author: SE Community | Expires: 2026-02-05';

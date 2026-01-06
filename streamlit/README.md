@@ -23,11 +23,11 @@
 
 **What it does:**
 1. Creates stage `SFE_STREAMLIT_STAGE`
-2. Copies files from Git repo → stage
+2. Copies files from Git repo -> stage
 3. Creates Streamlit app `SFE_SIMPLE_STREAM_MONITOR`
 4. Grants access permissions
 
-**Access:** Snowsight → Projects → Streamlit → `SFE_SIMPLE_STREAM_MONITOR`
+**Access:** Snowsight -> Projects -> Streamlit -> `SFE_SIMPLE_STREAM_MONITOR`
 
 ---
 
@@ -61,16 +61,16 @@ streamlit run streamlit_app.py
 **Deployment Flow:**
 ```
 Git Repository (sfe-simple-stream)
-  └─ streamlit/
-      ├─ streamlit_app.py
-      └─ requirements.txt
-            ↓
+  +- streamlit/
+      +- streamlit_app.py
+      +- requirements.txt
+            v
         COPY FILES
-            ↓
+            v
     SFE_STREAMLIT_STAGE
-            ↓
+            v
      CREATE STREAMLIT
-            ↓
+            v
   SFE_SIMPLE_STREAM_MONITOR
   (Runs in Snowflake)
 ```
@@ -88,32 +88,32 @@ Git Repository (sfe-simple-stream)
 
 ## Dashboard Features
 
-### 🎯 Overview Page
+###  Overview Page
 - System health KPIs
 - Pipeline status indicators
 - Data freshness metrics
 
-### 📈 Ingestion Metrics
+###  Ingestion Metrics
 - Events over time chart
 - Entry vs Exit comparison
 - Signal quality trends
 
-### ⏱️ Pipeline Health
+###  Pipeline Health
 - Layer-by-layer latency
 - Health status cards
 - Row count visualization
 
-### 💰 Cost Tracking
+###  Cost Tracking
 - 30-day credit consumption
 - Data volume trends
 - Ingestion efficiency
 
-### 🔧 Task Performance
+###  Task Performance
 - Success rate by task
 - Duration over time
 - Status distribution
 
-### 📊 Query Efficiency
+###  Query Efficiency
 - Partition pruning metrics
 - Scan ratio by table
 - Efficiency ratings
@@ -128,11 +128,11 @@ Edit `streamlit_app.py` to add custom views or modify existing ones.
 
 ```python
 # Add after existing pages
-elif page == "🆕 Custom View":
+elif page == "NEW Custom View":
     st.header("My Custom View")
-    
+
     custom_df = query_snowflake("""
-        SELECT 
+        SELECT
             badge_id,
             COUNT(*) AS event_count
         FROM RAW_BADGE_EVENTS
@@ -141,7 +141,7 @@ elif page == "🆕 Custom View":
         ORDER BY event_count DESC
         LIMIT 10
     """)
-    
+
     st.dataframe(custom_df)
 ```
 
@@ -178,7 +178,6 @@ After modifying, redeploy:
 
 ---
 
-**Author:** SE Community  
-**Purpose:** Real-time monitoring dashboard for Snowpipe Streaming pipeline  
-**Expires:** 2026-01-01
-
+**Author:** SE Community
+**Purpose:** Real-time monitoring dashboard for Snowpipe Streaming pipeline
+**Expires:** 2026-02-05

@@ -1,14 +1,14 @@
 # Data Provider Integration Guide
 
-**Target Database:** `SNOWFLAKE_EXAMPLE`  
-**Target Schema:** `RAW_INGESTION`  
+**Target Database:** `SNOWFLAKE_EXAMPLE`
+**Target Schema:** `RAW_INGESTION`
 **Target Table:** `RAW_BADGE_EVENTS`
 
 **Purpose:** This document provides everything a data provider needs to stream events into your Snowflake pipeline.
 
 ---
 
-## 🎯 Quick Start: Send Your First Event in 5 Minutes
+##  Quick Start: Send Your First Event in 5 Minutes
 
 **Snowflake provides official SDKs that handle all authentication automatically:**
 
@@ -103,18 +103,18 @@ events = [
 
 # Send events (SDK handles buffering, compression, REST API calls)
 response = manager.ingest_rows(events)
-print(f"✅ Successfully sent {len(events)} events")
+print(f"OK Successfully sent {len(events)} events")
 ```
 
 **That's it.** No JWT tokens, no fingerprint calculation, no manual REST calls. The SDK handles everything.
 
 ### What the SDK Does Automatically
 
-✅ **Zero Authentication Code** - SDK calculates JWT tokens internally  
-✅ **High Performance** - Rust-based core optimized for millions of events/second  
-✅ **Official Support** - Maintained by Snowflake engineering  
-✅ **Automatic Retry** - Built-in error handling and reconnection  
-✅ **Simplified Config** - Just provide account/user/private_key
+OK **Zero Authentication Code** - SDK calculates JWT tokens internally
+OK **High Performance** - Rust-based core optimized for millions of events/second
+OK **Official Support** - Maintained by Snowflake engineering
+OK **Automatic Retry** - Built-in error handling and reconnection
+OK **Simplified Config** - Just provide account/user/private_key
 
 ---
 
@@ -156,7 +156,7 @@ print(f"✅ Successfully sent {len(events)} events")
 }
 ```
 
-**⚠️ Security Notes:**
+**WARNING Security Notes:**
 - Keep the private key file secure (never commit to Git, never email unencrypted)
 - Use environment variables or secure vaults for production deployments
 - The private key is the only authentication credential needed (no passwords)
@@ -178,11 +178,11 @@ print(f"✅ Successfully sent {len(events)} events")
 | `event_timestamp` | STRING | Event time (ISO 8601) | `"2025-12-02T10:30:00"` | ISO 8601 format required |
 
 **Timestamp Format Requirements:**
-- ✅ **Accepted:** `"2025-12-02T10:30:00"` (ISO 8601)
-- ✅ **Accepted:** `"2025-12-02T10:30:00Z"` (with timezone)
-- ✅ **Accepted:** `"2025-12-02T10:30:00-05:00"` (with offset)
-- ❌ **Rejected:** `"11/24/2024 10:30 AM"` (not ISO 8601)
-- ❌ **Rejected:** `"2025-12-02 10:30:00"` (space instead of T)
+- OK **Accepted:** `"2025-12-02T10:30:00"` (ISO 8601)
+- OK **Accepted:** `"2025-12-02T10:30:00Z"` (with timezone)
+- OK **Accepted:** `"2025-12-02T10:30:00-05:00"` (with offset)
+- NOT **Rejected:** `"11/24/2024 10:30 AM"` (not ISO 8601)
+- NOT **Rejected:** `"2025-12-02 10:30:00"` (space instead of T)
 
 ### Optional Fields (Enhance with Additional Data)
 
@@ -210,12 +210,12 @@ print(f"✅ Successfully sent {len(events)} events")
 **Snowflake pipeline automatically enriches your data:**
 
 1. **Signal Quality Classification** (based on `signal_strength`):
-   - `< -80 dBm` → `"WEAK"`
-   - `-80 to -60 dBm` → `"MEDIUM"`
-   - `> -60 dBm` → `"STRONG"`
+   - `< -80 dBm` -> `"WEAK"`
+   - `-80 to -60 dBm` -> `"MEDIUM"`
+   - `> -60 dBm` -> `"STRONG"`
 
 2. **Direction Normalization:**
-   - Converts to uppercase (`"entry"` → `"ENTRY"`)
+   - Converts to uppercase (`"entry"` -> `"ENTRY"`)
 
 3. **Ingestion Timestamp:**
    - `ingestion_time` automatically added (server time when received)
@@ -250,7 +250,7 @@ manager.ingest_rows([test_event])
 **Ask your Snowflake administrator to run this query:**
 
 ```sql
-SELECT 
+SELECT
     badge_id,
     user_id,
     zone_id,
@@ -258,16 +258,16 @@ SELECT
     signal_strength,
     signal_quality,
     ingestion_time
-FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.RAW_BADGE_EVENTS 
+FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.RAW_BADGE_EVENTS
 WHERE badge_id = 'TEST-VENDOR-001'
-ORDER BY ingestion_time DESC 
+ORDER BY ingestion_time DESC
 LIMIT 10;
 ```
 
 **Expected Result:**
-- ✅ Row appears within 2 minutes of sending
-- ✅ `signal_quality` is automatically calculated (`"MEDIUM"` for -65.5 dBm)
-- ✅ `ingestion_time` is populated with server timestamp
+- OK Row appears within 2 minutes of sending
+- OK `signal_quality` is automatically calculated (`"MEDIUM"` for -65.5 dBm)
+- OK `ingestion_time` is populated with server timestamp
 
 ---
 
@@ -279,9 +279,20 @@ LIMIT 10;
 
 ```sql
 -- Events per hour over last 24 hours
-SELECT * 
+SELECT
+  ingestion_hour,
+  event_count,
+  events_per_second,
+  unique_badges,
+  unique_zones,
+  avg_signal_strength,
+  weak_signal_count,
+  weak_signal_pct,
+  entry_count,
+  exit_count,
+  net_occupancy_change
 FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_INGESTION_METRICS
-ORDER BY ingestion_hour DESC 
+ORDER BY ingestion_hour DESC
 LIMIT 24;
 ```
 
@@ -291,7 +302,12 @@ LIMIT 24;
 
 ```sql
 -- How long from ingestion to analytics
-SELECT * 
+SELECT
+  layer,
+  last_update,
+  seconds_since_update,
+  row_count,
+  health_status
 FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_END_TO_END_LATENCY;
 ```
 
@@ -301,7 +317,17 @@ FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_END_TO_END_LATENCY;
 
 ```sql
 -- Check for duplicates, orphans, signal quality distribution
-SELECT * 
+SELECT
+  total_raw_events,
+  total_staged_events,
+  total_fact_events,
+  duplicate_count,
+  duplicate_rate_pct,
+  orphan_user_count,
+  orphan_zone_count,
+  orphan_rate_pct,
+  weak_signal_count,
+  weak_signal_rate_pct
 FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_DATA_QUALITY_METRICS;
 ```
 
@@ -317,8 +343,8 @@ FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_DATA_QUALITY_METRICS;
 | Metric | Value | Notes |
 |--------|-------|-------|
 | **Max Throughput** | Millions of events/sec | Snowpipe Streaming capacity |
-| **Typical Latency** | < 1 minute | Event sent → queryable in RAW table |
-| **End-to-End Latency** | < 2 minutes | Event sent → enriched in ANALYTICS layer |
+| **Typical Latency** | < 1 minute | Event sent -> queryable in RAW table |
+| **End-to-End Latency** | < 2 minutes | Event sent -> enriched in ANALYTICS layer |
 | **Event Size** | < 100 KB/event | Typical badge event ~500 bytes |
 | **Batch Size** | 10-16 MB (compressed) | SDK handles automatically |
 
@@ -391,23 +417,23 @@ FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_DATA_QUALITY_METRICS;
 - [Java SDK Reference](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-streaming-java)
 
 **Common Questions:**
-- **Q: Do I need to manage JWT tokens?**  
+- **Q: Do I need to manage JWT tokens?**
   A: No, the SDK handles all authentication automatically.
-  
-- **Q: What happens if my connection drops mid-stream?**  
+
+- **Q: What happens if my connection drops mid-stream?**
   A: SDK automatically retries and resumes from last successful batch.
-  
-- **Q: Can I send events from multiple processes?**  
+
+- **Q: Can I send events from multiple processes?**
   A: Yes, SDK is thread-safe and supports concurrent streaming.
-  
-- **Q: How do I handle schema changes?**  
+
+- **Q: How do I handle schema changes?**
   A: Additional JSON fields are automatically preserved in `raw_json` column. Coordinate with Snowflake admin for formal schema updates.
 
 ---
 
 ## Appendix A: REST API Reference
 
-**⚠️ NOT RECOMMENDED - Use SDK Instead**
+**WARNING NOT RECOMMENDED - Use SDK Instead**
 
 If you absolutely must use the REST API (IoT device, unsupported language), see the complete REST API authentication flow below.
 
@@ -442,10 +468,9 @@ curl -X POST \
 ```
 
 **Why SDK is Better:**
-- 200+ lines of JWT code → 5 lines of SDK config
-- Manual token refresh → Automatic refresh
-- Error-prone fingerprint calculation → Handled internally
-- No retry logic → Built-in exponential backoff
+- 200+ lines of JWT code -> 5 lines of SDK config
+- Manual token refresh -> Automatic refresh
+- Error-prone fingerprint calculation -> Handled internally
+- No retry logic -> Built-in exponential backoff
 
 </details>
-

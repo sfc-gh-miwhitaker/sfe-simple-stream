@@ -11,13 +11,13 @@
 Your Snowflake administrator will provide a **credentials package** containing:
 
 ```
-📦 Credentials Package
-├── account: myorg-myaccount
-├── user: SFE_INGEST_USER
-├── private_key: rsa_key.p8 file
-├── database: SNOWFLAKE_EXAMPLE
-├── schema: RAW_INGESTION
-└── table: RAW_BADGE_EVENTS
+ Credentials Package
++-- account: myorg-myaccount
++-- user: SFE_INGEST_USER
++-- private_key: rsa_key.p8 file
++-- database: SNOWFLAKE_EXAMPLE
++-- schema: RAW_INGESTION
++-- table: RAW_BADGE_EVENTS
 ```
 
 **Keep the private key secure** - it's your only authentication credential (no passwords needed).
@@ -75,7 +75,7 @@ event = {
 
 # Stream event
 response = manager.ingest_rows([event])
-print("✅ Event sent successfully")
+print("Event sent successfully")
 ```
 
 **That's it.** SDK handles all authentication, buffering, compression, and retry logic automatically.
@@ -87,7 +87,14 @@ print("✅ Event sent successfully")
 Ask your Snowflake administrator to run:
 
 ```sql
-SELECT * FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.RAW_BADGE_EVENTS
+SELECT
+  badge_id,
+  user_id,
+  zone_id,
+  reader_id,
+  event_timestamp,
+  ingestion_time
+FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.RAW_BADGE_EVENTS
 WHERE badge_id = 'BADGE-001'
 ORDER BY ingestion_time DESC;
 ```
@@ -120,11 +127,11 @@ ORDER BY ingestion_time DESC;
 ```
 
 **Timestamp format requirements:**
-- ✅ `"2025-12-02T10:30:00"` - ISO 8601 (required)
-- ✅ `"2025-12-02T10:30:00Z"` - with timezone
-- ✅ `"2025-12-02T10:30:00-05:00"` - with offset
-- ❌ `"11/24/2024 10:30 AM"` - NOT accepted
-- ❌ `"2025-12-02 10:30:00"` - NOT accepted (space instead of T)
+- Allowed: `"2025-12-02T10:30:00"` (ISO 8601, required)
+- Allowed: `"2025-12-02T10:30:00Z"` (with timezone)
+- Allowed: `"2025-12-02T10:30:00-05:00"` (with offset)
+- Not allowed: `"11/24/2024 10:30 AM"`
+- Not allowed: `"2025-12-02 10:30:00"` (space instead of T)
 
 ---
 
@@ -133,9 +140,9 @@ ORDER BY ingestion_time DESC;
 **Snowflake pipeline enriches your data:**
 
 1. **Signal Quality Classification** (if you provide `signal_strength`):
-   - `< -80 dBm` → `"WEAK"`
-   - `-80 to -60 dBm` → `"MEDIUM"`
-   - `> -60 dBm` → `"STRONG"`
+   - `< -80 dBm` -> `"WEAK"`
+   - `-80 to -60 dBm` -> `"MEDIUM"`
+   - `> -60 dBm` -> `"STRONG"`
 
 2. **Ingestion Timestamp** - Server timestamp added automatically
 
@@ -211,7 +218,7 @@ manager.ingest_rows(events)
 
 | Metric | Value |
 |--------|-------|
-| **Typical Latency** | < 1 minute (event sent → queryable) |
+| **Typical Latency** | < 1 minute (event sent -> queryable) |
 | **Max Throughput** | Millions of events/sec |
 | **Durability** | Once SDK reports success, event is durable |
 | **Event Size Limit** | < 100 KB/event |
@@ -234,27 +241,27 @@ manager.ingest_rows(events)
 
 ## Support Contacts
 
-**Snowflake Administrator:** [Provided separately]  
-**Pipeline Owner:** [Provided separately]  
+**Snowflake Administrator:** [Provided separately]
+**Pipeline Owner:** [Provided separately]
 **Escalation:** [Provided separately]
 
 ---
 
 ## Common Questions
 
-**Q: Do I need to generate JWT tokens?**  
+**Q: Do I need to generate JWT tokens?**
 A: No, SDK handles all authentication automatically.
 
-**Q: What if my connection drops?**  
+**Q: What if my connection drops?**
 A: SDK automatically retries with exponential backoff.
 
-**Q: Can I test without impacting production?**  
+**Q: Can I test without impacting production?**
 A: Yes, use test badge IDs (prefix: "TEST-") and coordinate with admin.
 
-**Q: How do I monitor ingestion?**  
+**Q: How do I monitor ingestion?**
 A: Ask your Snowflake admin for monitoring dashboard access. They have real-time metrics.
 
-**Q: Can I send custom fields beyond the required 5?**  
+**Q: Can I send custom fields beyond the required 5?**
 A: Yes, any additional JSON fields are preserved in `raw_json` column.
 
 ---
@@ -272,4 +279,3 @@ A: Yes, any additional JSON fields are preserved in `raw_json` column.
 **Ready to integrate?** Contact your Snowflake administrator to receive your credentials package.
 
 **Need detailed reference?** See [`05-API-HANDOFF.md`](05-API-HANDOFF.md) for complete API documentation.
-

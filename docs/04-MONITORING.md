@@ -1,6 +1,6 @@
 # Monitoring Guide - Simple Stream
 
-**Time to Review:** ~5 minutes  
+**Time to Review:** ~5 minutes
 **Prerequisites:** Completed [`03-TESTING.md`](03-TESTING.md) with active data flow
 
 ---
@@ -32,7 +32,18 @@ All views are in the `RAW_INGESTION` schema.
 
 **Query:**
 ```sql
-SELECT * 
+SELECT
+  ingestion_hour,
+  event_count,
+  events_per_second,
+  unique_badges,
+  unique_zones,
+  avg_signal_strength,
+  weak_signal_count,
+  weak_signal_pct,
+  entry_count,
+  exit_count,
+  net_occupancy_change
 FROM RAW_INGESTION.V_INGESTION_METRICS
 ORDER BY ingestion_hour DESC
 LIMIT 24;
@@ -54,8 +65,8 @@ LIMIT 24;
 - Capacity planning (events/hour trends)
 
 **Alerts:**
-- ⚠️ `event_count = 0` for >2 hours → Ingestion stopped
-- ⚠️ Sudden drop >50% → Data source issue
+- WARNING `event_count = 0` for >2 hours -> Ingestion stopped
+- WARNING Sudden drop >50% -> Data source issue
 
 ---
 
@@ -65,9 +76,14 @@ LIMIT 24;
 
 **Query:**
 ```sql
-SELECT * 
+SELECT
+  layer,
+  last_update,
+  seconds_since_update,
+  row_count,
+  health_status
 FROM RAW_INGESTION.V_END_TO_END_LATENCY
-ORDER BY avg_latency_seconds DESC
+ORDER BY seconds_since_update DESC
 LIMIT 10;
 ```
 
@@ -86,13 +102,13 @@ LIMIT 10;
 - Detect task scheduling delays
 
 **Alerts:**
-- ⚠️ `avg_latency_seconds > 180` → Tasks not keeping up
-- ⚠️ `max_latency_seconds > 300` → Investigate warehouse sizing
+- WARNING `avg_latency_seconds > 180` -> Tasks not keeping up
+- WARNING `max_latency_seconds > 300` -> Investigate warehouse sizing
 
 **Troubleshooting:**
 ```sql
 -- If latency is high, check task execution frequency
-SELECT 
+SELECT
     NAME,
     STATE,
     SCHEDULE,
@@ -111,7 +127,15 @@ LIMIT 10;
 
 **Query:**
 ```sql
-SELECT * 
+SELECT
+  task_name,
+  state,
+  scheduled_time,
+  completed_time,
+  duration_seconds,
+  error_code,
+  error_message,
+  execution_status
 FROM RAW_INGESTION.V_TASK_EXECUTION_HISTORY
 ORDER BY scheduled_time DESC
 LIMIT 20;
@@ -134,14 +158,14 @@ LIMIT 20;
 - Track rows processed per execution
 
 **Alerts:**
-- 🚨 `state = 'FAILED'` → Immediate investigation
-- ⚠️ `duration_seconds > 30` → Warehouse may be undersized
-- ⚠️ `rows_processed = 0` for >5 executions → No new data
+- CRITICAL `state = 'FAILED'` -> Immediate investigation
+- WARNING `duration_seconds > 30` -> Warehouse may be undersized
+- WARNING `rows_processed = 0` for >5 executions -> No new data
 
 **Common Error Patterns:**
 ```sql
 -- Find recent task failures
-SELECT 
+SELECT
     task_name,
     error_message,
     COUNT(*) AS failure_count
@@ -160,7 +184,17 @@ ORDER BY failure_count DESC;
 
 **Query:**
 ```sql
-SELECT * 
+SELECT
+  total_raw_events,
+  total_staged_events,
+  total_fact_events,
+  duplicate_count,
+  duplicate_rate_pct,
+  orphan_user_count,
+  orphan_zone_count,
+  orphan_rate_pct,
+  weak_signal_count,
+  weak_signal_rate_pct
 FROM RAW_INGESTION.V_DATA_QUALITY_METRICS;
 ```
 
@@ -171,12 +205,12 @@ FROM RAW_INGESTION.V_DATA_QUALITY_METRICS;
 | `total_staged_events` | Events in STG table | ~95-98% of raw |
 | `total_fact_events` | Events in FCT table | ~95-100% of staged |
 | `duplicate_count` | Duplicates filtered | < 5% of raw |
-| `duplicate_rate` | Percentage duplicates | < 5% |
+| `duplicate_rate_pct` | Percentage duplicates (last 24h) | < 5% |
 | `orphan_user_count` | Events with unknown user_id | 0 |
 | `orphan_zone_count` | Events with unknown zone_id | 0 |
-| `orphan_rate` | Percentage orphans | 0% |
+| `orphan_rate_pct` | Percentage orphans (last 24h) | 0% |
 | `weak_signal_count` | Events with RSSI < -80 dBm | Varies |
-| `weak_signal_rate` | Percentage weak signals | < 10% |
+| `weak_signal_rate_pct` | Percentage weak signals (last 24h) | < 10% |
 
 **Use Cases:**
 - Detect data quality degradation
@@ -184,9 +218,9 @@ FROM RAW_INGESTION.V_DATA_QUALITY_METRICS;
 - Monitor RFID hardware health (signal strength)
 
 **Alerts:**
-- 🚨 `orphan_rate > 5%` → Dimension tables out of sync
-- ⚠️ `duplicate_rate > 10%` → Source system issue
-- ⚠️ `weak_signal_rate > 20%` → RFID reader placement or hardware issues
+- CRITICAL `orphan_rate > 5%` -> Dimension tables out of sync
+- WARNING `duplicate_rate > 10%` -> Source system issue
+- WARNING `weak_signal_rate > 20%` -> RFID reader placement or hardware issues
 
 ---
 
@@ -196,25 +230,30 @@ FROM RAW_INGESTION.V_DATA_QUALITY_METRICS;
 
 **Query:**
 ```sql
-SELECT * 
+SELECT
+  ingestion_date,
+  gb_ingested,
+  rows_ingested,
+  actual_credits_used,
+  rows_per_gb
 FROM RAW_INGESTION.V_STREAMING_COSTS
-ORDER BY cost_date DESC
+ORDER BY ingestion_date DESC
 LIMIT 30;
 ```
 
 **Columns:**
 | Column | Description | Notes |
 |--------|-------------|-------|
-| `cost_date` | Date of cost | Daily aggregation |
-| `total_events` | Events processed | - |
-| `estimated_gb_ingested` | Data volume | Avg ~200 bytes/event |
-| `estimated_credits` | Credit consumption | $2/credit (Standard) |
-| `estimated_cost_usd` | Dollar cost estimate | Based on $2/credit |
+| `ingestion_date` | Date of ingestion activity | Daily aggregation |
+| `gb_ingested` | Data volume ingested | - |
+| `rows_ingested` | Rows ingested | - |
+| `actual_credits_used` | Actual credits used | From SNOWPIPE streaming history |
+| `rows_per_gb` | Ingestion density | Rows per GB |
 
 **Formula:**
 ```
-Credits = (GB ingested × 0.06) + (Task execution seconds / 3600 × Warehouse size)
-Cost = Credits × Price per credit
+Credits = (GB ingested x 0.06) + (Task execution seconds / 3600 x Warehouse size)
+Cost = Credits x Price per credit
 ```
 
 **Use Cases:**
@@ -223,8 +262,8 @@ Cost = Credits × Price per credit
 - Chargeback/showback reporting
 
 **Alerts:**
-- ⚠️ Daily cost increases >50% → Investigate volume spike
-- ⚠️ Cost per event increases → Inefficient processing
+- WARNING Daily cost increases >50% -> Investigate volume spike
+- WARNING Cost per event increases -> Inefficient processing
 
 ---
 
@@ -234,9 +273,18 @@ Cost = Credits × Price per credit
 
 **Query:**
 ```sql
-SELECT * 
+SELECT
+  pipe_name,
+  last_ingestion_time,
+  seconds_since_last_ingestion,
+  total_rows_inserted,
+  total_gb_inserted,
+  active_minutes_last_hour,
+  avg_rows_per_insert,
+  max_rows_per_insert,
+  total_credits_used
 FROM RAW_INGESTION.V_CHANNEL_STATUS
-ORDER BY last_poll_time DESC;
+ORDER BY last_ingestion_time DESC;
 ```
 
 **Columns:**
@@ -255,8 +303,8 @@ ORDER BY last_poll_time DESC;
 - Monitor ingestion volume per channel
 
 **Alerts:**
-- 🚨 `status = 'ERROR'` → Check pipe error messages
-- ⚠️ `last_poll_time > 5 minutes ago` + `status = OPEN` → Channel stalled
+- CRITICAL `status = 'ERROR'` -> Check pipe error messages
+- WARNING `last_poll_time > 5 minutes ago` + `status = OPEN` -> Channel stalled
 
 ---
 
@@ -266,7 +314,13 @@ ORDER BY last_poll_time DESC;
 
 **Query:**
 ```sql
-SELECT * 
+SELECT
+  badge_id,
+  user_id,
+  user_name,
+  last_zone,
+  last_seen,
+  event_count_today
 FROM RAW_INGESTION.V_ACTIVE_BADGES
 ORDER BY last_seen DESC
 LIMIT 50;
@@ -295,7 +349,7 @@ LIMIT 50;
 
 **Check warehouse credit consumption:**
 ```sql
-SELECT 
+SELECT
     WAREHOUSE_NAME,
     START_TIME,
     END_TIME,
@@ -311,7 +365,7 @@ ORDER BY START_TIME DESC;
 **Warehouse efficiency:**
 ```sql
 -- Check for idle time (credits wasted)
-SELECT 
+SELECT
     DATE_TRUNC('day', START_TIME) AS day,
     SUM(CREDITS_USED) AS total_credits,
     SUM(CASE WHEN CREDITS_USED_COMPUTE = 0 THEN CREDITS_USED ELSE 0 END) AS idle_credits,
@@ -329,7 +383,7 @@ ORDER BY 1 DESC;
 
 **Monitor database storage:**
 ```sql
-SELECT 
+SELECT
     TABLE_CATALOG AS database_name,
     TABLE_SCHEMA AS schema_name,
     SUM(ACTIVE_BYTES) / POWER(1024, 3) AS active_storage_gb,
@@ -349,7 +403,7 @@ ORDER BY total_storage_gb DESC;
 
 **Check slowest queries:**
 ```sql
-SELECT 
+SELECT
     QUERY_ID,
     QUERY_TEXT,
     EXECUTION_STATUS,
@@ -384,7 +438,7 @@ LIMIT 10;
 USE SCHEMA RAW_INGESTION;
 
 -- Summary Stats (Last Hour)
-SELECT 
+SELECT
     'Last Hour Summary' AS metric_group,
     COUNT(*) AS raw_events,
     COUNT(DISTINCT badge_id) AS unique_badges,
@@ -394,7 +448,7 @@ FROM RAW_BADGE_EVENTS
 WHERE ingestion_time >= DATEADD('hour', -1, CURRENT_TIMESTAMP());
 
 -- Recent Ingestion Rate (Last 10 Minutes)
-SELECT 
+SELECT
     'Ingestion Rate (Last 10 Min)' AS metric_group,
     COUNT(*) AS events,
     COUNT(*) / 10.0 AS events_per_minute
@@ -402,7 +456,7 @@ FROM RAW_BADGE_EVENTS
 WHERE ingestion_time >= DATEADD('minute', -10, CURRENT_TIMESTAMP());
 
 -- Task Health (Last 5 Executions)
-SELECT 
+SELECT
     'Task Health' AS metric_group,
     task_name,
     state,
@@ -414,7 +468,7 @@ ORDER BY scheduled_time DESC
 LIMIT 5;
 
 -- End-to-End Latency
-SELECT 
+SELECT
     'Latency' AS metric_group,
     avg_latency_seconds,
     max_latency_seconds,
@@ -424,7 +478,7 @@ WHERE lag_bucket = '60-120s'
 LIMIT 1;
 
 -- Data Quality (Current)
-SELECT 
+SELECT
     'Data Quality' AS metric_group,
     duplicate_rate,
     orphan_rate,
@@ -432,7 +486,7 @@ SELECT
 FROM V_DATA_QUALITY_METRICS;
 
 -- Active Right Now
-SELECT 
+SELECT
     'Active Badges (Last 5 Min)' AS metric_group,
     COUNT(DISTINCT badge_id) AS active_badges
 FROM RAW_BADGE_EVENTS
@@ -475,25 +529,25 @@ WHERE ingestion_time >= DATEADD('minute', -5, CURRENT_TIMESTAMP());
 
 **Steps:**
 1. Check pipe status: `SHOW PIPES;`
-2. Check channel status: `SELECT * FROM V_CHANNEL_STATUS;`
+2. Check channel status: `SELECT pipe_name, last_ingestion_time, seconds_since_last_ingestion, total_rows_inserted, total_credits_used FROM V_CHANNEL_STATUS;`
 3. Check task status: `SHOW TASKS;` (should be `started`, not `suspended`)
-4. Check for task errors: `SELECT * FROM V_TASK_EXECUTION_HISTORY WHERE state = 'FAILED';`
+4. Check for task errors: `SELECT task_name, state, scheduled_time, error_code, error_message FROM V_TASK_EXECUTION_HISTORY WHERE state = 'FAILED';`
 
 ### Issue: "High latency"
 
 **Steps:**
 1. Check task execution frequency: `V_TASK_EXECUTION_HISTORY`
 2. Check warehouse size: `SHOW WAREHOUSES;`
-3. Check for spill to disk: `Query profile for tasks → look for bytes_spilled`
+3. Check for spill to disk: `Query profile for tasks -> look for bytes_spilled`
 4. Consider increasing warehouse size or reducing task interval
 
 ### Issue: "Orphan records"
 
 **Steps:**
-1. Find orphaned IDs: 
+1. Find orphaned IDs:
    ```sql
-   SELECT DISTINCT user_id 
-   FROM RAW_BADGE_EVENTS 
+   SELECT DISTINCT user_id
+   FROM RAW_BADGE_EVENTS
    WHERE user_id NOT IN (SELECT user_id FROM ANALYTICS_LAYER.DIM_USERS WHERE is_current = TRUE);
    ```
 2. Add missing dimensions or fix source data to use valid IDs
@@ -502,9 +556,9 @@ WHERE ingestion_time >= DATEADD('minute', -5, CURRENT_TIMESTAMP());
 
 ## What's Next?
 
-✅ **Monitoring Setup Complete!**
+OK **Monitoring Setup Complete!**
 
-**→ For Data Providers:**
+**-> For Data Providers:**
 - [`06-DATA-PROVIDER-QUICKSTART.md`](06-DATA-PROVIDER-QUICKSTART.md) - Send this to vendors (10-minute integration)
 - [`05-API-HANDOFF.md`](05-API-HANDOFF.md) - Complete API reference (troubleshooting)
 
@@ -523,4 +577,3 @@ WHERE ingestion_time >= DATEADD('minute', -5, CURRENT_TIMESTAMP());
 - [`06-DATA-PROVIDER-QUICKSTART.md`](06-DATA-PROVIDER-QUICKSTART.md) - **Send to vendors** (10-minute integration)
 - [`05-API-HANDOFF.md`](05-API-HANDOFF.md) - Complete API reference
 - [`../diagrams/`](../diagrams/) - Architecture diagrams
-

@@ -1,7 +1,7 @@
 /*******************************************************************************
  * DEMO PROJECT: simple-stream
  * Script: API Provider Handoff Document Generator
- * ⚠️  NOT FOR PRODUCTION USE - EXAMPLE IMPLEMENTATION ONLY
+ * NOT FOR PRODUCTION USE - EXAMPLE IMPLEMENTATION ONLY
  ******************************************************************************/
 
 -- ============================================================================
@@ -11,7 +11,7 @@
 USE ROLE SYSADMIN;
 USE DATABASE SNOWFLAKE_EXAMPLE;
 
-SELECT 
+SELECT
 '================================================================================
 SNOWPIPE STREAMING API - DATA PROVIDER HANDOFF
 ================================================================================
@@ -22,7 +22,7 @@ BASE CONFIGURATION:
 
 CREDENTIALS:
   Account:      ' || CURRENT_ORGANIZATION_NAME() || '-' || CURRENT_ACCOUNT_NAME() || '
-  Username:     sfe_ingest_user
+  Username:     SFE_INGEST_USER
   Role:         sfe_ingest_role
   Private Key:  rsa_key.p8 (provided separately via secure channel)
 
@@ -41,10 +41,10 @@ QUICKSTART DEMO
 
 Working scripts that demonstrate the SQL API workflow:
 
-  https://github.com/sfc-gh-miwhitaker/sfe-simple-stream
+  https://github.com/sfc-gh-se-community/sfe-simple-stream
 
-  Unix/Mac:  ./send_events.sh
-  Windows:   send_events.bat
+  Unix/Mac:  ./simulator/send_events.sh
+  Windows:   simulator/send_events.bat
 
 Scripts prompt for ACCOUNT_ID updates, generate the JWT, run a three-row INSERT via the SQL API, and print a success message.
 
@@ -53,7 +53,7 @@ DOCUMENTATION
 --------------------------------------------------------------------------------
 
 Complete Guide:
-  https://github.com/sfc-gh-miwhitaker/sfe-simple-stream
+  https://github.com/sfc-gh-se-community/sfe-simple-stream
 
 Snowflake Docs:
   https://docs.snowflake.com/en/developer-guide/sql-api/intro
@@ -63,9 +63,35 @@ Snowflake Docs:
 MONITORING VIEWS
 --------------------------------------------------------------------------------
 
-SELECT * FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_INGESTION_METRICS;
-SELECT * FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_END_TO_END_LATENCY;
-SELECT * FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_STREAMING_COSTS;
+SELECT
+  ingestion_hour,
+  event_count,
+  events_per_second,
+  unique_badges,
+  unique_zones,
+  avg_signal_strength,
+  weak_signal_count,
+  weak_signal_pct,
+  entry_count,
+  exit_count,
+  net_occupancy_change
+FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_INGESTION_METRICS;
+
+SELECT
+  layer,
+  last_update,
+  seconds_since_update,
+  row_count,
+  health_status
+FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_END_TO_END_LATENCY;
+
+SELECT
+  ingestion_date,
+  gb_ingested,
+  rows_ingested,
+  actual_credits_used,
+  rows_per_gb
+FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_STREAMING_COSTS;
 
 (Contact Snowflake admin to grant SELECT privileges if needed)
 
@@ -78,11 +104,11 @@ SELECT * FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_STREAMING_COSTS;
 
 USE ROLE ACCOUNTADMIN;
 
-SELECT 
-    'sfe_ingest_user' AS username,
-    CASE 
-        WHEN rsa_public_key_fp IS NOT NULL THEN '✓ Public key registered'
-        ELSE '✗ NO PUBLIC KEY - Run sql/01_setup/01_configure_auth.sql Step 4'
+SELECT
+    'SFE_INGEST_USER' AS username,
+    CASE
+        WHEN rsa_public_key_fp IS NOT NULL THEN 'OK: Public key registered'
+        ELSE 'ERROR: Public key not registered. Run sql/01_setup/01_configure_auth.sql Step 4.'
     END AS key_status,
     default_role AS role,
     disabled AS account_disabled
@@ -93,9 +119,8 @@ AND deleted_on IS NULL;
 -- ============================================================================
 -- DONE
 -- ============================================================================
--- 
+--
 -- Copy the API handoff document above and share with your data provider
 -- along with the rsa_key.p8 file via a secure channel.
--- 
+--
 -- ============================================================================
-

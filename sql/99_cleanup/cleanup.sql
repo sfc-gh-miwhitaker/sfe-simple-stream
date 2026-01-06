@@ -19,17 +19,17 @@ use database SNOWFLAKE_EXAMPLE;
 DECLARE
   schema_exists BOOLEAN;
 BEGIN
-  SELECT COUNT(*) > 0 INTO :schema_exists 
-  FROM INFORMATION_SCHEMA.SCHEMATA 
+  SELECT COUNT(*) > 0 INTO :schema_exists
+  FROM INFORMATION_SCHEMA.SCHEMATA
   WHERE SCHEMA_NAME = 'RAW_INGESTION' AND CATALOG_NAME = 'SNOWFLAKE_EXAMPLE';
-  
+
   IF (schema_exists) THEN
     USE DATABASE SNOWFLAKE_EXAMPLE;
-    
+
     -- Suspend ROOT/PARENT task FIRST (stops the entire DAG)
     ALTER TASK IF EXISTS RAW_INGESTION.sfe_raw_to_staging_task SUSPEND;
     CALL SYSTEM$WAIT(2);
-    
+
     -- Suspend child tasks
     ALTER TASK IF EXISTS RAW_INGESTION.sfe_staging_to_analytics_task SUSPEND;
     ALTER TASK IF EXISTS RAW_INGESTION.sfe_alert_on_data_quality_violations SUSPEND;

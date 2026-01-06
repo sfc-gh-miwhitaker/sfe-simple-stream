@@ -4,9 +4,7 @@ Snowflake Native Streamlit App
 
 Author: SE Community
 Purpose: Real-time monitoring dashboard for Snowpipe Streaming pipeline
-Expires: 2026-01-01
-
-DEMO PROJECT - NOT FOR PRODUCTION USE WITHOUT REVIEW
+Demo project (timeboxed; lifecycle enforcement is implemented in deploy_all.sql)
 
 DEPLOYMENT:
     Run: sql/05_streamlit/deploy_streamlit.sql
@@ -26,7 +24,7 @@ from snowflake.snowpark.context import get_active_session
 
 st.set_page_config(
     page_title="Simple Stream Monitor",
-    page_icon="❄️",
+    page_icon="S",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -74,13 +72,13 @@ def get_health_color(status: str) -> str:
 # Header
 # ============================================================================
 
-st.title("❄️ Simple Stream - Real-Time Monitor")
+st.title("Simple Stream - Real-Time Monitor")
 st.caption(f"Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Auto-refresh: 60s")
 
 # Add refresh button
 col1, col2 = st.columns([6, 1])
 with col2:
-    if st.button("🔄 Refresh Now"):
+    if st.button("Refresh Now"):
         st.cache_data.clear()
         st.rerun()
 
@@ -90,52 +88,75 @@ st.divider()
 # Sidebar Navigation
 # ============================================================================
 
-st.sidebar.title("📊 Dashboard")
+st.sidebar.title("Dashboard")
 page = st.sidebar.radio(
     "Select View",
     [
-        "🎯 Overview",
-        "📈 Ingestion Metrics",
-        "⏱️ Pipeline Health",
-        "💰 Cost Tracking",
-        "🔧 Task Performance",
-        "📊 Query Efficiency",
-        "🔌 Client Metrics"
+        "Overview",
+        "Ingestion Metrics",
+        "Pipeline Health",
+        "Cost Tracking",
+        "Task Performance",
+        "Query Efficiency",
+        "Client Metrics"
     ]
 )
 
 st.sidebar.divider()
-st.sidebar.caption("**Demo Project**")
-st.sidebar.caption("Expires: 2026-01-01")
+st.sidebar.caption("Demo project (timeboxed; see deploy_all.sql)")
 st.sidebar.caption("SE Community")
 
 # ============================================================================
 # Page: Overview
 # ============================================================================
 
-if page == "🎯 Overview":
+if page == "Overview":
     st.header("System Overview")
-    
+
     # Query all key metrics
     try:
         # End-to-end latency
         latency_df = query_snowflake("""
-            SELECT * FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_END_TO_END_LATENCY
+            SELECT
+              LAYER,
+              LAST_UPDATE,
+              SECONDS_SINCE_UPDATE,
+              ROW_COUNT,
+              HEALTH_STATUS
+            FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_END_TO_END_LATENCY
         """)
-        
+
         # Channel status
         channel_df = query_snowflake("""
-            SELECT * FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_CHANNEL_STATUS
+            SELECT
+              PIPE_NAME,
+              LAST_INGESTION_TIME,
+              SECONDS_SINCE_LAST_INGESTION,
+              TOTAL_ROWS_INSERTED,
+              TOTAL_GB_INSERTED,
+              ACTIVE_MINUTES_LAST_HOUR,
+              AVG_ROWS_PER_INSERT,
+              MAX_ROWS_PER_INSERT,
+              TOTAL_CREDITS_USED
+            FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_CHANNEL_STATUS
         """)
-        
+
         # Data freshness
         freshness_df = query_snowflake("""
-            SELECT * FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_DATA_FRESHNESS
+            SELECT
+              TABLE_NAME,
+              LAST_EVENT_TIMESTAMP,
+              LAST_INGESTION_TIMESTAMP,
+              EVENT_AGE_SECONDS,
+              INGESTION_AGE_SECONDS,
+              TOTAL_ROWS,
+              ROWS_LAST_HOUR
+            FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_DATA_FRESHNESS
         """)
-        
+
         # Top-level KPIs
         col1, col2, col3, col4 = st.columns(4)
-        
+
         with col1:
             if not channel_df.empty:
                 total_rows = channel_df['TOTAL_ROWS_INSERTED'].iloc[0]
@@ -146,7 +167,7 @@ if page == "🎯 Overview":
                 )
             else:
                 st.metric("Total Events Ingested", "N/A")
-        
+
         with col2:
             if not latency_df.empty:
                 raw_status = latency_df[latency_df['LAYER'] == 'RAW']['HEALTH_STATUS'].iloc[0]
@@ -158,7 +179,7 @@ if page == "🎯 Overview":
                 )
             else:
                 st.metric("Pipeline Status", "N/A")
-        
+
         with col3:
             if not channel_df.empty:
                 credits = channel_df['TOTAL_CREDITS_USED'].iloc[0]
@@ -169,7 +190,7 @@ if page == "🎯 Overview":
                 )
             else:
                 st.metric("Credits Used (1h)", "N/A")
-        
+
         with col4:
             if not freshness_df.empty:
                 total_rows = freshness_df['TOTAL_ROWS'].sum()
@@ -180,12 +201,12 @@ if page == "🎯 Overview":
                 )
             else:
                 st.metric("Total Rows Stored", "N/A")
-        
+
         st.divider()
-        
+
         # Pipeline Health Status
-        st.subheader("🏥 Pipeline Health")
-        
+        st.subheader("Pipeline Health")
+
         if not latency_df.empty:
             # Create status indicators
             cols = st.columns(3)
@@ -194,17 +215,17 @@ if page == "🎯 Overview":
                     status = row['HEALTH_STATUS']
                     color = get_health_color(status)
                     st.markdown(f"**{row['LAYER']} Layer**")
-                    st.markdown(f":{color}[●] {status}")
+                    st.markdown(f":{color}[*] {status}")
                     st.caption(f"Last update: {format_timedelta(row['SECONDS_SINCE_UPDATE'])} ago")
                     st.caption(f"Rows (1h): {row['ROW_COUNT']:,.0f}")
         else:
             st.info("No pipeline data available. Send events to see metrics.")
-        
+
         st.divider()
-        
+
         # Data Freshness Table
-        st.subheader("📊 Data Freshness")
-        
+        st.subheader("Data Freshness")
+
         if not freshness_df.empty:
             # Format the dataframe for display
             display_df = freshness_df.copy()
@@ -212,7 +233,7 @@ if page == "🎯 Overview":
             display_df['LAST_INGESTION_TIMESTAMP'] = pd.to_datetime(display_df['LAST_INGESTION_TIMESTAMP'])
             display_df['EVENT_AGE'] = display_df['EVENT_AGE_SECONDS'].apply(format_timedelta)
             display_df['INGESTION_AGE'] = display_df['INGESTION_AGE_SECONDS'].apply(format_timedelta)
-            
+
             st.dataframe(
                 display_df[['TABLE_NAME', 'LAST_EVENT_TIMESTAMP', 'EVENT_AGE', 'TOTAL_ROWS', 'ROWS_LAST_HOUR']],
                 use_container_width=True,
@@ -220,7 +241,7 @@ if page == "🎯 Overview":
             )
         else:
             st.info("No freshness data available.")
-    
+
     except Exception as e:
         st.error(f"Error loading overview: {str(e)}")
         st.info("Ensure views are created by running: sql/04_monitoring/04_monitoring.sql")
@@ -229,41 +250,53 @@ if page == "🎯 Overview":
 # Page: Ingestion Metrics
 # ============================================================================
 
-elif page == "📈 Ingestion Metrics":
+elif page == "Ingestion Metrics":
     st.header("Ingestion Metrics")
-    
+
     try:
         metrics_df = query_snowflake("""
-            SELECT * FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_INGESTION_METRICS
+            SELECT
+              INGESTION_HOUR,
+              EVENT_COUNT,
+              EVENTS_PER_SECOND,
+              UNIQUE_BADGES,
+              UNIQUE_ZONES,
+              AVG_SIGNAL_STRENGTH,
+              WEAK_SIGNAL_COUNT,
+              WEAK_SIGNAL_PCT,
+              ENTRY_COUNT,
+              EXIT_COUNT,
+              NET_OCCUPANCY_CHANGE
+            FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_INGESTION_METRICS
             ORDER BY INGESTION_HOUR DESC
             LIMIT 24
         """)
-        
+
         if not metrics_df.empty:
             # Top metrics
             col1, col2, col3, col4 = st.columns(4)
-            
+
             with col1:
                 total_events = metrics_df['EVENT_COUNT'].sum()
                 st.metric("Total Events (24h)", f"{total_events:,.0f}")
-            
+
             with col2:
                 avg_events_per_hour = metrics_df['EVENT_COUNT'].mean()
                 st.metric("Avg Events/Hour", f"{avg_events_per_hour:,.0f}")
-            
+
             with col3:
                 unique_badges = metrics_df['UNIQUE_BADGES'].max()
                 st.metric("Unique Badges", f"{unique_badges:,.0f}")
-            
+
             with col4:
                 avg_signal = metrics_df['AVG_SIGNAL_STRENGTH'].mean()
                 st.metric("Avg Signal Strength", f"{avg_signal:.1f} dBm")
-            
+
             st.divider()
-            
+
             # Events over time chart
-            st.subheader("📊 Events Over Time (Last 24 Hours)")
-            
+            st.subheader("Events Over Time (Last 24 Hours)")
+
             fig = px.line(
                 metrics_df.sort_values('INGESTION_HOUR'),
                 x='INGESTION_HOUR',
@@ -273,10 +306,10 @@ elif page == "📈 Ingestion Metrics":
             )
             fig.update_traces(line_color='#29B5E8')
             st.plotly_chart(fig, use_container_width=True)
-            
+
             # Entry vs Exit chart
-            st.subheader("🚪 Entry vs Exit Events")
-            
+            st.subheader("Entry vs Exit Events")
+
             fig = go.Figure()
             fig.add_trace(go.Bar(
                 x=metrics_df.sort_values('INGESTION_HOUR')['INGESTION_HOUR'],
@@ -297,10 +330,10 @@ elif page == "📈 Ingestion Metrics":
                 barmode='group'
             )
             st.plotly_chart(fig, use_container_width=True)
-            
+
             # Signal quality distribution
-            st.subheader("📡 Signal Quality Distribution")
-            
+            st.subheader("Signal Quality Distribution")
+
             fig = px.line(
                 metrics_df.sort_values('INGESTION_HOUR'),
                 x='INGESTION_HOUR',
@@ -310,9 +343,9 @@ elif page == "📈 Ingestion Metrics":
             )
             fig.update_traces(line_color='#FF6B6B')
             st.plotly_chart(fig, use_container_width=True)
-            
+
             # Detailed table
-            st.subheader("📋 Detailed Metrics Table")
+            st.subheader("Detailed Metrics Table")
             st.dataframe(
                 metrics_df[[
                     'INGESTION_HOUR', 'EVENT_COUNT', 'EVENTS_PER_SECOND',
@@ -324,7 +357,7 @@ elif page == "📈 Ingestion Metrics":
             )
         else:
             st.info("No ingestion metrics available. Send events to see data.")
-    
+
     except Exception as e:
         st.error(f"Error loading ingestion metrics: {str(e)}")
 
@@ -332,35 +365,41 @@ elif page == "📈 Ingestion Metrics":
 # Page: Pipeline Health
 # ============================================================================
 
-elif page == "⏱️ Pipeline Health":
+elif page == "Pipeline Health":
     st.header("Pipeline Health & Latency")
-    
+
     try:
         latency_df = query_snowflake("""
-            SELECT * FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_END_TO_END_LATENCY
+            SELECT
+              LAYER,
+              LAST_UPDATE,
+              SECONDS_SINCE_UPDATE,
+              ROW_COUNT,
+              HEALTH_STATUS
+            FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_END_TO_END_LATENCY
         """)
-        
+
         if not latency_df.empty:
             # Health status cards
-            st.subheader("🏥 Layer Status")
-            
+            st.subheader("Layer Status")
+
             cols = st.columns(3)
             for idx, row in latency_df.iterrows():
                 with cols[idx]:
                     status = row['HEALTH_STATUS']
                     color = get_health_color(status)
-                    
+
                     st.markdown(f"### {row['LAYER']} Layer")
-                    st.markdown(f":{color}[●] **{status}**")
+                    st.markdown(f":{color}[*] **{status}**")
                     st.metric("Seconds Since Update", f"{row['SECONDS_SINCE_UPDATE']}")
                     st.metric("Row Count (1h)", f"{row['ROW_COUNT']:,.0f}")
                     st.caption(f"Last update: {row['LAST_UPDATE']}")
-            
+
             st.divider()
-            
+
             # Latency chart
-            st.subheader("⏱️ Layer Latency")
-            
+            st.subheader("Layer Latency")
+
             fig = px.bar(
                 latency_df,
                 x='LAYER',
@@ -375,10 +414,10 @@ elif page == "⏱️ Pipeline Health":
                 }
             )
             st.plotly_chart(fig, use_container_width=True)
-            
+
             # Row count by layer
-            st.subheader("📊 Row Count by Layer (Last Hour)")
-            
+            st.subheader("Row Count by Layer (Last Hour)")
+
             fig = px.bar(
                 latency_df,
                 x='LAYER',
@@ -388,13 +427,13 @@ elif page == "⏱️ Pipeline Health":
                 color_discrete_sequence=['#29B5E8']
             )
             st.plotly_chart(fig, use_container_width=True)
-            
+
             # Detailed table
-            st.subheader("📋 Detailed Health Metrics")
+            st.subheader("Detailed Health Metrics")
             st.dataframe(latency_df, use_container_width=True, hide_index=True)
         else:
             st.info("No health data available.")
-    
+
     except Exception as e:
         st.error(f"Error loading pipeline health: {str(e)}")
 
@@ -402,41 +441,47 @@ elif page == "⏱️ Pipeline Health":
 # Page: Cost Tracking
 # ============================================================================
 
-elif page == "💰 Cost Tracking":
+elif page == "Cost Tracking":
     st.header("Cost Tracking")
-    
+
     try:
         cost_df = query_snowflake("""
-            SELECT * FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_STREAMING_COSTS
+            SELECT
+              INGESTION_DATE,
+              GB_INGESTED,
+              ROWS_INGESTED,
+              ACTUAL_CREDITS_USED,
+              ROWS_PER_GB
+            FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_STREAMING_COSTS
             ORDER BY INGESTION_DATE DESC
             LIMIT 30
         """)
-        
+
         if not cost_df.empty:
             # Top metrics
             col1, col2, col3, col4 = st.columns(4)
-            
+
             with col1:
                 total_credits = cost_df['ACTUAL_CREDITS_USED'].sum()
                 st.metric("Total Credits (30d)", f"{total_credits:.4f}")
-            
+
             with col2:
                 total_gb = cost_df['GB_INGESTED'].sum()
                 st.metric("Total GB Ingested", f"{total_gb:.2f}")
-            
+
             with col3:
                 total_rows = cost_df['ROWS_INGESTED'].sum()
                 st.metric("Total Rows Ingested", f"{total_rows:,.0f}")
-            
+
             with col4:
                 avg_cost_per_gb = total_credits / total_gb if total_gb > 0 else 0
                 st.metric("Avg Credits/GB", f"{avg_cost_per_gb:.6f}")
-            
+
             st.divider()
-            
+
             # Credits over time
-            st.subheader("💰 Credits Usage Over Time")
-            
+            st.subheader("Credits Usage Over Time")
+
             fig = px.area(
                 cost_df.sort_values('INGESTION_DATE'),
                 x='INGESTION_DATE',
@@ -446,10 +491,10 @@ elif page == "💰 Cost Tracking":
             )
             fig.update_traces(line_color='#29B5E8', fillcolor='rgba(41, 181, 232, 0.3)')
             st.plotly_chart(fig, use_container_width=True)
-            
+
             # GB ingested over time
-            st.subheader("📊 Data Volume Over Time")
-            
+            st.subheader("Data Volume Over Time")
+
             fig = px.bar(
                 cost_df.sort_values('INGESTION_DATE'),
                 x='INGESTION_DATE',
@@ -459,10 +504,10 @@ elif page == "💰 Cost Tracking":
                 color_discrete_sequence=['#29B5E8']
             )
             st.plotly_chart(fig, use_container_width=True)
-            
+
             # Efficiency metric
-            st.subheader("⚡ Ingestion Efficiency")
-            
+            st.subheader("Ingestion Efficiency")
+
             fig = px.line(
                 cost_df.sort_values('INGESTION_DATE'),
                 x='INGESTION_DATE',
@@ -472,9 +517,9 @@ elif page == "💰 Cost Tracking":
             )
             fig.update_traces(line_color='#00C851')
             st.plotly_chart(fig, use_container_width=True)
-            
+
             # Detailed table
-            st.subheader("📋 Detailed Cost Breakdown")
+            st.subheader("Detailed Cost Breakdown")
             st.dataframe(
                 cost_df[[
                     'INGESTION_DATE', 'GB_INGESTED', 'ROWS_INGESTED',
@@ -485,7 +530,7 @@ elif page == "💰 Cost Tracking":
             )
         else:
             st.info("No cost data available. Data appears after ingestion activity.")
-    
+
     except Exception as e:
         st.error(f"Error loading cost tracking: {str(e)}")
 
@@ -493,47 +538,56 @@ elif page == "💰 Cost Tracking":
 # Page: Task Performance
 # ============================================================================
 
-elif page == "🔧 Task Performance":
+elif page == "Task Performance":
     st.header("Task Execution History")
-    
+
     try:
         task_df = query_snowflake("""
-            SELECT * FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_TASK_EXECUTION_HISTORY
+            SELECT
+              TASK_NAME,
+              STATE,
+              SCHEDULED_TIME,
+              COMPLETED_TIME,
+              DURATION_SECONDS,
+              ERROR_CODE,
+              ERROR_MESSAGE,
+              EXECUTION_STATUS
+            FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_TASK_EXECUTION_HISTORY
             ORDER BY SCHEDULED_TIME DESC
             LIMIT 50
         """)
-        
+
         if not task_df.empty:
             # Summary metrics
             col1, col2, col3, col4 = st.columns(4)
-            
+
             with col1:
                 total_executions = len(task_df)
                 st.metric("Total Executions (24h)", total_executions)
-            
+
             with col2:
                 success_rate = (task_df['EXECUTION_STATUS'] == 'SUCCESS').sum() / len(task_df) * 100
                 st.metric("Success Rate", f"{success_rate:.1f}%")
-            
+
             with col3:
                 avg_duration = task_df['DURATION_SECONDS'].mean()
                 st.metric("Avg Duration", f"{avg_duration:.2f}s")
-            
+
             with col4:
                 failed_count = (task_df['EXECUTION_STATUS'] == 'FAILED').sum()
                 st.metric("Failed Executions", failed_count)
-            
+
             st.divider()
-            
+
             # Success rate by task
-            st.subheader("✅ Success Rate by Task")
-            
+            st.subheader("Success Rate by Task")
+
             task_summary = task_df.groupby('TASK_NAME').agg({
                 'EXECUTION_STATUS': lambda x: (x == 'SUCCESS').sum() / len(x) * 100,
                 'DURATION_SECONDS': 'mean'
             }).reset_index()
             task_summary.columns = ['TASK_NAME', 'SUCCESS_RATE', 'AVG_DURATION']
-            
+
             fig = px.bar(
                 task_summary,
                 x='TASK_NAME',
@@ -544,10 +598,10 @@ elif page == "🔧 Task Performance":
                 color_continuous_scale=['#FF4444', '#FFA900', '#00C851']
             )
             st.plotly_chart(fig, use_container_width=True)
-            
+
             # Duration over time
-            st.subheader("⏱️ Execution Duration Over Time")
-            
+            st.subheader("Execution Duration Over Time")
+
             fig = px.scatter(
                 task_df.sort_values('SCHEDULED_TIME'),
                 x='SCHEDULED_TIME',
@@ -557,10 +611,10 @@ elif page == "🔧 Task Performance":
                 labels={'DURATION_SECONDS': 'Duration (s)', 'SCHEDULED_TIME': 'Time'}
             )
             st.plotly_chart(fig, use_container_width=True)
-            
+
             # Status distribution
-            st.subheader("📊 Execution Status Distribution")
-            
+            st.subheader("Execution Status Distribution")
+
             status_counts = task_df['EXECUTION_STATUS'].value_counts()
             fig = px.pie(
                 values=status_counts.values,
@@ -573,14 +627,14 @@ elif page == "🔧 Task Performance":
                 }
             )
             st.plotly_chart(fig, use_container_width=True)
-            
+
             # Recent executions table
-            st.subheader("📋 Recent Executions")
-            
+            st.subheader("Recent Executions")
+
             # Show failures first
             display_df = task_df.copy()
             display_df = display_df.sort_values(['EXECUTION_STATUS', 'SCHEDULED_TIME'], ascending=[True, False])
-            
+
             st.dataframe(
                 display_df[[
                     'TASK_NAME', 'SCHEDULED_TIME', 'DURATION_SECONDS',
@@ -591,7 +645,7 @@ elif page == "🔧 Task Performance":
             )
         else:
             st.info("No task execution history available.")
-    
+
     except Exception as e:
         st.error(f"Error loading task performance: {str(e)}")
 
@@ -599,39 +653,46 @@ elif page == "🔧 Task Performance":
 # Page: Query Efficiency
 # ============================================================================
 
-elif page == "📊 Query Efficiency":
+elif page == "Query Efficiency":
     st.header("Query Pruning Efficiency")
-    
+
     try:
         efficiency_df = query_snowflake("""
-            SELECT * FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_PARTITION_EFFICIENCY
+            SELECT
+              TABLE_NAME,
+              QUERY_COUNT,
+              AVG_SCAN_RATIO_PCT,
+              TOTAL_GB_SCANNED_APPROX,
+              ROW_PRUNE_RATIO_PCT,
+              PRUNING_EFFICIENCY
+            FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_PARTITION_EFFICIENCY
         """)
-        
+
         if not efficiency_df.empty:
             # Summary metrics
             col1, col2, col3, col4 = st.columns(4)
-            
+
             with col1:
                 total_queries = efficiency_df['QUERY_COUNT'].sum()
                 st.metric("Total Queries (24h)", f"{total_queries:,.0f}")
-            
+
             with col2:
                 avg_scan_ratio = efficiency_df['AVG_SCAN_RATIO_PCT'].mean()
                 st.metric("Avg Scan Ratio", f"{avg_scan_ratio:.2f}%")
-            
+
             with col3:
                 total_gb_scanned = efficiency_df['TOTAL_GB_SCANNED_APPROX'].sum()
                 st.metric("Total GB Scanned", f"{total_gb_scanned:.2f}")
-            
+
             with col4:
                 avg_prune_ratio = efficiency_df['ROW_PRUNE_RATIO_PCT'].mean()
                 st.metric("Avg Prune Ratio", f"{avg_prune_ratio:.2f}%")
-            
+
             st.divider()
-            
+
             # Pruning efficiency by table
-            st.subheader("🎯 Pruning Efficiency by Table")
-            
+            st.subheader("Pruning Efficiency by Table")
+
             fig = px.bar(
                 efficiency_df,
                 x='TABLE_NAME',
@@ -647,10 +708,10 @@ elif page == "📊 Query Efficiency":
                 }
             )
             st.plotly_chart(fig, use_container_width=True)
-            
+
             # Query count by table
-            st.subheader("📊 Query Volume by Table")
-            
+            st.subheader("Query Volume by Table")
+
             fig = px.bar(
                 efficiency_df,
                 x='TABLE_NAME',
@@ -660,10 +721,10 @@ elif page == "📊 Query Efficiency":
                 color_discrete_sequence=['#29B5E8']
             )
             st.plotly_chart(fig, use_container_width=True)
-            
+
             # Efficiency indicators
-            st.subheader("⚡ Efficiency Indicators")
-            
+            st.subheader("Efficiency Indicators")
+
             for _, row in efficiency_df.iterrows():
                 efficiency = row['PRUNING_EFFICIENCY']
                 color = {
@@ -672,7 +733,7 @@ elif page == "📊 Query Efficiency":
                     'FAIR': 'orange',
                     'POOR': 'red'
                 }.get(efficiency, 'gray')
-                
+
                 with st.expander(f"{row['TABLE_NAME']} - :{color}[{efficiency}]"):
                     col1, col2, col3 = st.columns(3)
                     with col1:
@@ -681,13 +742,13 @@ elif page == "📊 Query Efficiency":
                         st.metric("Scan Ratio", f"{row['AVG_SCAN_RATIO_PCT']:.2f}%")
                     with col3:
                         st.metric("Prune Ratio", f"{row['ROW_PRUNE_RATIO_PCT']:.2f}%")
-            
+
             # Detailed table
-            st.subheader("📋 Detailed Efficiency Metrics")
+            st.subheader("Detailed Efficiency Metrics")
             st.dataframe(efficiency_df, use_container_width=True, hide_index=True)
         else:
             st.info("No query efficiency data available. Data appears after query activity.")
-    
+
     except Exception as e:
         st.error(f"Error loading query efficiency: {str(e)}")
 
@@ -695,42 +756,53 @@ elif page == "📊 Query Efficiency":
 # Page: Client Metrics
 # ============================================================================
 
-elif page == "🔌 Client Metrics":
+elif page == "Client Metrics":
     st.header("Streaming Client Metrics")
     st.caption("Client-side SDK ingestion metrics (SNOWPIPE_STREAMING_CLIENT_HISTORY)")
-    
+
     try:
         client_df = query_snowflake("""
-            SELECT * FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_STREAMING_CLIENT_METRICS
+            SELECT
+              CLIENT_NAME,
+              INGESTION_DATE,
+              SESSION_COUNT,
+              TOTAL_CLIENT_CREDITS,
+              TOTAL_GB_SENT,
+              AVG_MB_PER_SESSION,
+              TOTAL_ROWS_SENT,
+              AVG_SESSION_DURATION_SECONDS,
+              EARLIEST_SESSION,
+              LATEST_SESSION
+            FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_STREAMING_CLIENT_METRICS
             ORDER BY INGESTION_DATE DESC
             LIMIT 30
         """)
-        
+
         if not client_df.empty:
             # Summary metrics
             col1, col2, col3, col4 = st.columns(4)
-            
+
             with col1:
                 total_credits = client_df['TOTAL_CLIENT_CREDITS'].sum()
                 st.metric("Total Client Credits (30d)", f"{total_credits:.4f}")
-            
+
             with col2:
                 total_gb = client_df['TOTAL_GB_SENT'].sum()
                 st.metric("Total GB Sent", f"{total_gb:.2f}")
-            
+
             with col3:
                 total_rows = client_df['TOTAL_ROWS_SENT'].sum()
                 st.metric("Total Rows Sent", f"{total_rows:,.0f}")
-            
+
             with col4:
                 total_sessions = client_df['SESSION_COUNT'].sum()
                 st.metric("Total Sessions", f"{total_sessions:,.0f}")
-            
+
             st.divider()
-            
+
             # Credits over time by client
-            st.subheader("💰 Client Credits Over Time")
-            
+            st.subheader("Client Credits Over Time")
+
             fig = px.area(
                 client_df.sort_values('INGESTION_DATE'),
                 x='INGESTION_DATE',
@@ -740,10 +812,10 @@ elif page == "🔌 Client Metrics":
                 labels={'TOTAL_CLIENT_CREDITS': 'Credits', 'INGESTION_DATE': 'Date'}
             )
             st.plotly_chart(fig, use_container_width=True)
-            
+
             # Rows sent over time
-            st.subheader("📤 Rows Sent Over Time")
-            
+            st.subheader("Rows Sent Over Time")
+
             fig = px.bar(
                 client_df.sort_values('INGESTION_DATE'),
                 x='INGESTION_DATE',
@@ -753,10 +825,10 @@ elif page == "🔌 Client Metrics":
                 labels={'TOTAL_ROWS_SENT': 'Rows', 'INGESTION_DATE': 'Date'},
             )
             st.plotly_chart(fig, use_container_width=True)
-            
+
             # Session duration analysis
-            st.subheader("⏱️ Session Duration Analysis")
-            
+            st.subheader("Session Duration Analysis")
+
             fig = px.scatter(
                 client_df.sort_values('INGESTION_DATE'),
                 x='INGESTION_DATE',
@@ -771,9 +843,9 @@ elif page == "🔌 Client Metrics":
                 }
             )
             st.plotly_chart(fig, use_container_width=True)
-            
+
             # Detailed table
-            st.subheader("📋 Detailed Client Metrics")
+            st.subheader("Detailed Client Metrics")
             st.dataframe(
                 client_df[[
                     'CLIENT_NAME', 'INGESTION_DATE', 'SESSION_COUNT',
@@ -785,7 +857,7 @@ elif page == "🔌 Client Metrics":
             )
         else:
             st.info("No client metrics available. Data appears after SDK ingestion activity.")
-    
+
     except Exception as e:
         st.error(f"Error loading client metrics: {str(e)}")
 
@@ -794,6 +866,5 @@ elif page == "🔌 Client Metrics":
 # ============================================================================
 
 st.divider()
-st.caption("**Simple Stream Monitor** | SE Community | Demo Project - Expires 2026-01-01")
-st.caption("🔄 Dashboard auto-refreshes every 60 seconds | Click 'Refresh Now' for immediate update")
-
+st.caption("Simple Stream Monitor | SE Community | Demo project (timeboxed; see deploy_all.sql)")
+st.caption("Dashboard auto-refreshes every 60 seconds.")

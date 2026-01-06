@@ -1,13 +1,12 @@
 # Data Flow - Simple Stream
 
-**Author:** SE Community  
-**Created:** 2025-12-02  
-**Expires:** 2026-01-01 (30 days)  
+**Author:** SE Community
+**Created:** 2025-12-02
 **Status:** Reference Implementation
 
 ![Snowflake](https://img.shields.io/badge/Snowflake-29B5E8?style=for-the-badge&logo=snowflake&logoColor=white)
 
-⚠️ **DEMONSTRATION PROJECT** - This demo expires on 2026-01-01 to ensure users encounter current Snowflake features only.
+DEMONSTRATION PROJECT - Timeboxed demo; lifecycle enforcement is implemented in `deploy_all.sql`.
 
 **Reference Implementation:** This code demonstrates production-grade architectural patterns and best practices. Review and customize security, networking, and logic for your organization's specific requirements before deployment.
 
@@ -23,64 +22,64 @@ graph TB
         RFID[RFID Badge System]
         SIM[Event Simulator<br/>send_events_stream.py]
     end
-    
+
     subgraph "Ingestion Layer - REST API"
         API[Snowpipe Streaming<br/>REST API Endpoint]
     end
-    
+
     subgraph "RAW_INGESTION Schema"
-        PIPE[sfe_badge_events_pipe<br/>JSON→Relational Transform]
+        PIPE[sfe_badge_events_pipe<br/>JSON->Relational Transform]
         RAW[(RAW_BADGE_EVENTS<br/>Permanent Table<br/>Append-Only)]
         STREAM[sfe_badge_events_stream<br/>CDC Stream]
     end
-    
+
     subgraph "STAGING_LAYER Schema"
         TASK1[sfe_raw_to_staging_task<br/>Runs: Every 1 min<br/>Trigger: STREAM_HAS_DATA]
         STG[(STG_BADGE_EVENTS<br/>Transient Table<br/>Deduplicated)]
     end
-    
+
     subgraph "ANALYTICS_LAYER Schema - Master Data"
         DIM_U[(DIM_USERS<br/>SCD Type 2<br/>Seeded Data)]
         DIM_Z[(DIM_ZONES<br/>SCD Type 2<br/>Seeded Data)]
     end
-    
+
     subgraph "ANALYTICS_LAYER Schema - Facts"
         TASK2[sfe_staging_to_analytics_task<br/>Runs: After TASK1<br/>Joins Dimensions]
         FACT[(FCT_ACCESS_EVENTS<br/>Permanent Table<br/>Clustered by Date)]
     end
-    
+
     subgraph "Consumption Layer"
         VIEWS[Monitoring Views<br/>V_INGESTION_METRICS<br/>V_END_TO_END_LATENCY<br/>V_STREAMING_COSTS]
         BI[BI Tools / Dashboards]
     end
-    
+
     %% Flow connections
     RFID -->|HTTPS POST<br/>JSON Events| API
     SIM -->|HTTPS POST<br/>JSON Events| API
-    
+
     API -->|Streaming Insert| PIPE
     PIPE -->|Server-Side Transform<br/>Extract JSON fields| RAW
-    
+
     RAW -->|Tracks INSERTs| STREAM
-    
+
     STREAM -->|When HAS_DATA| TASK1
     TASK1 -->|MERGE<br/>Deduplicate<br/>ON (badge_id, timestamp)| STG
-    
+
     STG -->|After TASK1<br/>Completes| TASK2
     DIM_U -->|LEFT JOIN<br/>ON user_id| TASK2
     DIM_Z -->|LEFT JOIN<br/>ON zone_id| TASK2
     TASK2 -->|INSERT<br/>Enriched Events| FACT
-    
+
     FACT --> VIEWS
     VIEWS --> BI
-    
+
     %% Styling
     classDef source fill:#e1f5ff,stroke:#0288d1,stroke-width:2px
     classDef raw fill:#fff9c4,stroke:#fbc02d,stroke-width:2px
     classDef staging fill:#f0f4c3,stroke:#9e9d24,stroke-width:2px
     classDef analytics fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
     classDef consumption fill:#f8bbd0,stroke:#c2185b,stroke-width:2px
-    
+
     class RFID,SIM source
     class API,PIPE,RAW,STREAM raw
     class TASK1,STG staging
@@ -223,7 +222,7 @@ graph TB
 | **Enrichment** | Staging events | LEFT JOIN dimensions, calculate metrics | Fact table | ~1 minute |
 | **Aggregation** | Fact table | GROUP BY, window functions in views | Aggregated metrics | Real-time (query time) |
 
-**Total End-to-End Latency:** < 2 minutes (ingestion → queryable analytics)
+**Total End-to-End Latency:** < 2 minutes (ingestion -> queryable analytics)
 
 ## Data Volume Estimates (Demo Scenario)
 
@@ -238,7 +237,7 @@ graph TB
 ## Error Handling & Data Quality
 
 ### Pipe Errors
-- **Detection:** `SHOW PIPES` → `EXECUTION_STATE = 'ERRORS'`
+- **Detection:** `SHOW PIPES` -> `EXECUTION_STATE = 'ERRORS'`
 - **Recovery:** Review `COPY_HISTORY`, fix JSON format, restart pipe
 - **Monitoring:** V_CHANNEL_STATUS view
 
@@ -271,10 +270,9 @@ graph TB
 
 ## Change History
 
-See `.cursor/DIAGRAM_CHANGELOG.md` for version history.
+See Git history for change tracking.
 
 ## Related Diagrams
 - `data-model.md` - Database schema and relationships
 - `network-flow.md` - Network connectivity architecture
 - `auth-flow.md` - Authentication and authorization flow
-

@@ -1,6 +1,6 @@
 # Setup Guide - Simple Stream
 
-**Time to Complete:** ~5 minutes  
+**Time to Complete:** ~5 minutes
 **Prerequisites:** Snowflake account with ACCOUNTADMIN and SYSADMIN roles
 
 ---
@@ -29,9 +29,9 @@ You should see both `ACCOUNTADMIN` and `SYSADMIN` in the results.
 
 | Edition | Supported | Notes |
 |---------|-----------|-------|
-| Standard | ✅ Yes | All features supported |
-| Enterprise | ✅ Yes | Recommended (includes fail-safe) |
-| Business Critical | ✅ Yes | Enhanced security features |
+| Standard | OK Yes | All features supported |
+| Enterprise | OK Yes | Recommended (includes fail-safe) |
+| Business Critical | OK Yes | Enhanced security features |
 
 **Verification:**
 ```sql
@@ -95,7 +95,7 @@ If your account has network policies, ensure `github.com` is allowed.
 Verify your current session context:
 
 ```sql
-SELECT 
+SELECT
     CURRENT_ROLE() AS role,
     CURRENT_USER() AS user,
     CURRENT_WAREHOUSE() AS warehouse,
@@ -158,10 +158,10 @@ The pipeline is designed with minimal privileges:
 ### API Integration Security
 
 The Git API integration:
-- ✅ Limited to `https://github.com/` prefix only
-- ✅ Public repository (no credentials stored)
-- ✅ Read-only access (Snowflake pulls scripts, doesn't push)
-- ✅ Can be shared across multiple demo projects
+- OK Limited to `https://github.com/` prefix only
+- OK Public repository (no credentials stored)
+- OK Read-only access (Snowflake pulls scripts, doesn't push)
+- OK Can be shared across multiple demo projects
 
 ### Data Isolation
 
@@ -200,8 +200,8 @@ All demo objects use the `SFE_` prefix (SnowFlake Example):
 
 ### "ACCOUNTADMIN role required"
 
-**Symptom:** Error creating API integration  
-**Cause:** Using SYSADMIN for API integration creation  
+**Symptom:** Error creating API integration
+**Cause:** Using SYSADMIN for API integration creation
 **Fix:** Switch roles:
 ```sql
 USE ROLE ACCOUNTADMIN;
@@ -209,20 +209,20 @@ USE ROLE ACCOUNTADMIN;
 
 ### "Access to GitHub is blocked"
 
-**Symptom:** Git repository creation fails  
-**Cause:** Network policy or firewall blocking github.com  
+**Symptom:** Git repository creation fails
+**Cause:** Network policy or firewall blocking github.com
 **Fix:** Verify outbound HTTPS:443 to github.com is allowed
 
 ### "Warehouse COMPUTE_WH does not exist"
 
-**Symptom:** Deployment fails with warehouse error  
-**Cause:** Default warehouse not created  
+**Symptom:** Deployment fails with warehouse error
+**Cause:** Default warehouse not created
 **Fix:** Create warehouse (see step 1 above)
 
 ### "Insufficient privileges"
 
-**Symptom:** Cannot create database or schema  
-**Cause:** User lacks SYSADMIN role  
+**Symptom:** Cannot create database or schema
+**Cause:** User lacks SYSADMIN role
 **Fix:** Grant role:
 ```sql
 USE ROLE ACCOUNTADMIN;
@@ -249,11 +249,11 @@ Before proceeding to deployment, verify:
 
 ## Next Steps
 
-✅ **Setup Complete!**
+OK **Setup Complete!**
 
 Proceed to deployment:
 
-**→ Next:** [`02-DEPLOYMENT.md`](02-DEPLOYMENT.md) - Deploy the pipeline (1 minute)
+**-> Next:** [`02-DEPLOYMENT.md`](02-DEPLOYMENT.md) - Deploy the pipeline (1 minute)
 
 **Alternative:** Review architecture diagrams first:
 - [`../diagrams/data-model.md`](../diagrams/data-model.md) - Database schema
@@ -273,4 +273,3 @@ Proceed to deployment:
 ### External Data Providers
 - [`06-DATA-PROVIDER-QUICKSTART.md`](06-DATA-PROVIDER-QUICKSTART.md) - **Send to vendors** (10-minute integration)
 - [`05-API-HANDOFF.md`](05-API-HANDOFF.md) - Complete API reference
-

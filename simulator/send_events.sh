@@ -1,7 +1,7 @@
 #!/bin/bash
 ################################################################################
 # Event Simulator - Unix/macOS Wrapper
-# 
+#
 # PURPOSE: Activate virtual environment and run Python event simulator
 # USAGE: ./send_events.sh [--count N]
 ################################################################################
@@ -26,4 +26,3 @@ source "$VENV_PATH/bin/activate"
 # Run Python simulator
 cd "$SCRIPT_DIR"
 python send_events.py "$@"
-

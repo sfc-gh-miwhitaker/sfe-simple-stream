@@ -1,13 +1,12 @@
 # Data Model - Simple Stream
 
-**Author:** SE Community  
-**Created:** 2025-12-02  
-**Expires:** 2026-01-01 (30 days)  
+**Author:** SE Community
+**Created:** 2025-12-02
 **Status:** Reference Implementation
 
 ![Snowflake](https://img.shields.io/badge/Snowflake-29B5E8?style=for-the-badge&logo=snowflake&logoColor=white)
 
-⚠️ **DEMONSTRATION PROJECT** - This demo expires on 2026-01-01 to ensure users encounter current Snowflake features only.
+DEMONSTRATION PROJECT - Timeboxed demo; lifecycle enforcement is implemented in `deploy_all.sql`.
 
 **Reference Implementation:** This code demonstrates production-grade architectural patterns and best practices. Review and customize security, networking, and logic for your organization's specific requirements before deployment.
 
@@ -32,7 +31,7 @@ erDiagram
         TIMESTAMP_NTZ ingestion_time "Server ingestion time"
         VARIANT raw_json "Original JSON payload"
     }
-    
+
     sfe_badge_events_stream ||--|| STG_BADGE_EVENTS : "processed into"
     STG_BADGE_EVENTS {
         VARCHAR badge_id PK
@@ -46,10 +45,10 @@ erDiagram
         TIMESTAMP_NTZ ingestion_time
         TIMESTAMP_NTZ processed_time
     }
-    
+
     STG_BADGE_EVENTS }o--|| DIM_USERS : "enriched with"
     STG_BADGE_EVENTS }o--|| DIM_ZONES : "enriched with"
-    
+
     DIM_USERS {
         VARCHAR user_id PK "Surrogate key"
         VARCHAR user_name "User full name"
@@ -59,7 +58,7 @@ erDiagram
         DATE effective_to "SCD Type 2 end"
         BOOLEAN is_current "Current version flag"
     }
-    
+
     DIM_ZONES {
         VARCHAR zone_id PK "Surrogate key"
         VARCHAR zone_name "Human-readable name"
@@ -70,7 +69,7 @@ erDiagram
         DATE effective_to "SCD Type 2 end"
         BOOLEAN is_current "Current version flag"
     }
-    
+
     STG_BADGE_EVENTS ||--o{ FCT_ACCESS_EVENTS : "aggregated into"
     FCT_ACCESS_EVENTS {
         NUMBER event_sk PK "Surrogate key"
@@ -82,7 +81,7 @@ erDiagram
         NUMBER dwell_time_minutes "Time spent in zone"
         TIMESTAMP_NTZ processed_time "ETL processing time"
     }
-    
+
     DIM_USERS ||--o{ FCT_ACCESS_EVENTS : "participated in"
     DIM_ZONES ||--o{ FCT_ACCESS_EVENTS : "location of"
 ```
@@ -147,11 +146,11 @@ erDiagram
 
 ```
 RAW_BADGE_EVENTS (source)
-    └─> sfe_badge_events_stream (CDC)
-        └─> STG_BADGE_EVENTS (deduped)
-            └─> FCT_ACCESS_EVENTS (enriched)
-                ├─> JOIN DIM_USERS
-                └─> JOIN DIM_ZONES
+    +-> sfe_badge_events_stream (CDC)
+        +-> STG_BADGE_EVENTS (deduped)
+            +-> FCT_ACCESS_EVENTS (enriched)
+                +-> JOIN DIM_USERS
+                +-> JOIN DIM_ZONES
 ```
 
 ## Constraints and Data Quality
@@ -192,10 +191,9 @@ RAW_BADGE_EVENTS (source)
 
 ## Change History
 
-See `.cursor/DIAGRAM_CHANGELOG.md` for version history.
+See Git history for change tracking.
 
 ## Related Diagrams
 - `data-flow.md` - How data moves through these tables
 - `network-flow.md` - Network connectivity to Snowflake
 - `auth-flow.md` - Authentication for data ingestion
-

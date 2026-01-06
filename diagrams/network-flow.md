@@ -1,13 +1,12 @@
 # Network Flow - Simple Stream
 
-**Author:** SE Community  
-**Created:** 2025-12-02  
-**Expires:** 2026-01-01 (30 days)  
+**Author:** SE Community
+**Created:** 2025-12-02
 **Status:** Reference Implementation
 
 ![Snowflake](https://img.shields.io/badge/Snowflake-29B5E8?style=for-the-badge&logo=snowflake&logoColor=white)
 
-⚠️ **DEMONSTRATION PROJECT** - This demo expires on 2026-01-01 to ensure users encounter current Snowflake features only.
+DEMONSTRATION PROJECT - Timeboxed demo; lifecycle enforcement is implemented in `deploy_all.sql`.
 
 **Reference Implementation:** This code demonstrates production-grade architectural patterns and best practices. Review and customize security, networking, and logic for your organization's specific requirements before deployment.
 
@@ -23,67 +22,67 @@ graph TB
         RFID[RFID Badge System<br/>On-Premises or Cloud]
         SIM[Event Simulator<br/>Developer Laptop]
     end
-    
+
     subgraph "Internet Boundary"
         FW1[Firewall / Proxy<br/>Outbound HTTPS:443]
     end
-    
+
     subgraph "Snowflake Cloud - Control Plane"
         ACCOUNT[Account URL<br/>orgname-accountname.snowflakecomputing.com<br/>Port: 443 HTTPS]
-        
+
         subgraph "Services"
             SQL_API[SQL API<br/>/api/v2/statements]
             TOKEN[OAuth Token Endpoint<br/>/oauth/token]
             HOSTNAME[Streaming Hostname Discovery<br/>/v2/streaming/hostname]
         end
     end
-    
+
     subgraph "Snowflake Cloud - Data Plane"
         INGEST[Ingest Host<br/>orgname-accountname.snowflakecomputing.com<br/>Port: 443 HTTPS]
-        
+
         subgraph "Streaming API Endpoints"
             CHANNEL_OPEN[Open Channel<br/>/channels/\\{channelId\\}/open]
             CHANNEL_APPEND[Append Rows<br/>/channels/\\{channelId\\}/rows]
             CHANNEL_CLOSE[Close Channel<br/>/channels/\\{channelId\\}/close]
         end
     end
-    
+
     subgraph "Snowflake Cloud - Storage"
         MICRO[Micro-Partitions<br/>Cloud Storage<br/>S3/Azure Blob/GCS]
     end
-    
+
     subgraph "Snowflake Cloud - Compute"
         VW[Virtual Warehouse<br/>COMPUTE_WH<br/>Size: X-SMALL]
         SERVERLESS[Serverless Services<br/>Snowpipe Streaming<br/>Task Execution]
     end
-    
+
     %% Network flows
     RFID -->|1. HTTPS POST<br/>JSON Events| FW1
     SIM -->|1. HTTPS POST<br/>JSON Events| FW1
-    
+
     FW1 -->|2. JWT Auth Request| TOKEN
     TOKEN -->|3. JWT Token| FW1
-    
+
     FW1 -->|4. Discover Ingest Host| HOSTNAME
     HOSTNAME -->|5. Ingest Host URL| FW1
-    
+
     FW1 -->|6. Scoped Token Request| TOKEN
     TOKEN -->|7. Scoped Token| FW1
-    
+
     FW1 -->|8. Open Channel<br/>Authorization: Bearer| CHANNEL_OPEN
     CHANNEL_OPEN -->|9. Channel ID| FW1
-    
+
     FW1 -->|10. Stream Events<br/>Authorization: Bearer| CHANNEL_APPEND
     CHANNEL_APPEND -->|11. Success/Offset Token| FW1
-    
+
     FW1 -->|12. Close Channel| CHANNEL_CLOSE
     CHANNEL_CLOSE -->|13. Final Status| FW1
-    
+
     CHANNEL_APPEND -->|14. Write Micro-Partitions| MICRO
-    
+
     SERVERLESS -->|15. Process Pipe Transformations| MICRO
     VW -->|16. Execute Tasks<br/>Read/Write| MICRO
-    
+
     %% Styling
     classDef external fill:#e1f5ff,stroke:#0288d1,stroke-width:2px
     classDef network fill:#fff9c4,stroke:#fbc02d,stroke-width:2px
@@ -91,7 +90,7 @@ graph TB
     classDef data fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
     classDef storage fill:#f8bbd0,stroke:#c2185b,stroke-width:2px
     classDef compute fill:#d1c4e9,stroke:#512da8,stroke-width:2px
-    
+
     class RFID,SIM external
     class FW1 network
     class ACCOUNT,SQL_API,TOKEN,HOSTNAME control
@@ -237,31 +236,31 @@ sequenceDiagram
     participant Account as Account URL
     participant Ingest as Ingest Host
     participant Storage as Micro-Partitions
-    
+
     Note over Client: 1. Generate JWT from RSA key
     Client->>Account: POST /oauth/token<br/>(grant_type=jwt-bearer, JWT)
     Account->>Account: Validate JWT signature<br/>Check RSA fingerprint
     Account-->>Client: 200 OK<br/>(session token)
-    
+
     Note over Client: 2. Discover ingest host
     Client->>Account: GET /v2/streaming/hostname<br/>(Authorization: Bearer token)
     Account-->>Client: 200 OK<br/>(ingest_host URL)
-    
+
     Note over Client: 3. Request scoped token
     Client->>Account: POST /oauth/token<br/>(scope=streaming)
     Account-->>Client: 200 OK<br/>(scoped streaming token)
-    
+
     Note over Client: 4. Open streaming channel
     Client->>Ingest: POST /channels/{id}/open<br/>(Authorization: Bearer scoped_token)
     Ingest-->>Client: 200 OK<br/>(channel confirmation)
-    
+
     Note over Client: 5. Stream data
     loop For each batch
         Client->>Ingest: POST /channels/{id}/rows<br/>(JSON array of events)
         Ingest->>Storage: Write micro-partitions
         Ingest-->>Client: 200 OK<br/>(offset token)
     end
-    
+
     Note over Client: 6. Close channel
     Client->>Ingest: POST /channels/{id}/close
     Ingest->>Storage: Flush pending data
@@ -285,9 +284,9 @@ Direction: Outbound only
 
 ### TLS Configuration
 
-**Minimum TLS Version:** TLS 1.2  
-**Recommended:** TLS 1.3  
-**Cipher Suites:** Modern ciphers only (AES-GCM preferred)  
+**Minimum TLS Version:** TLS 1.2
+**Recommended:** TLS 1.3
+**Cipher Suites:** Modern ciphers only (AES-GCM preferred)
 **Certificate Validation:** Must validate Snowflake's certificate chain
 
 ### Proxy Configuration
@@ -376,10 +375,9 @@ curl -x http://proxy:8080 https://orgname-accountname.snowflakecomputing.com
 
 ## Change History
 
-See `.cursor/DIAGRAM_CHANGELOG.md` for version history.
+See Git history for change tracking.
 
 ## Related Diagrams
 - `data-model.md` - Database schema and relationships
 - `data-flow.md` - Data transformation pipeline
 - `auth-flow.md` - Detailed authentication sequence
-

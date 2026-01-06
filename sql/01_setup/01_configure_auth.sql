@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Configure Authentication for Data Provider
- * 
+ *
  * PURPOSE: Set up a service account with key pair auth for external data ingestion
- * 
+ *
  * RUN THIS ONCE: Before sharing API configuration with data provider
- * 
+ *
  * TIME: 5 minutes
  ******************************************************************************/
 
@@ -79,9 +79,8 @@ SHOW GRANTS TO ROLE sfe_ingest_role;
 -- ============================================================================
 -- DONE - Authentication configured
 -- ============================================================================
--- 
+--
 -- Next: Run @sql/01_setup/02_api_handoff.sql to generate complete documentation
 --       for your data provider (API config + credentials)
--- 
+--
 -- ============================================================================
-

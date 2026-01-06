@@ -1,6 +1,6 @@
 # Testing Guide - Simple Stream
 
-**Time to Complete:** ~3 minutes (automated) or ~10 minutes (manual)  
+**Time to Complete:** ~3 minutes (automated) or ~10 minutes (manual)
 **Prerequisites:** Completed [`02-DEPLOYMENT.md`](02-DEPLOYMENT.md)
 
 ---
@@ -13,7 +13,7 @@ This guide shows you how to test your Simple Stream pipeline end-to-end using th
 
 ### Path 1: Automated Testing (Recommended) - 3 Minutes
 
-**One command does everything:** RSA keys → SQL execution → Python setup → Event sending
+**One command does everything:** RSA keys -> SQL execution -> Python setup -> Event sending
 
 ```bash
 ./tools/02_setup_and_test.sh
@@ -47,12 +47,12 @@ You'll complete three steps:
 
 **The `./tools/02_setup_and_test.sh` script performs these actions:**
 
-1. **Generate RSA Key Pair** → Creates `.secrets/keys/rsa_key.p8` (private) and `rsa_key.pub` (public)
-2. **Generate SQL Script** → Creates `.secrets/configure_auth_READY.sql` with embedded public key
-3. **Display Instructions** → Shows you exactly what to paste into Snowsight
-4. **Setup Python Environment** → Creates virtual environment, installs SDK
-5. **Create Config File** → Generates `.secrets/config.json` with your account identifier
-6. **Send Test Events** → Streams 10 sample events to verify end-to-end flow
+1. **Generate RSA Key Pair** -> Creates `.secrets/keys/rsa_key.p8` (private) and `rsa_key.pub` (public)
+2. **Generate SQL Script** -> Creates `.secrets/configure_auth_READY.sql` with embedded public key
+3. **Display Instructions** -> Shows you exactly what to paste into Snowsight
+4. **Setup Python Environment** -> Creates virtual environment, installs SDK
+5. **Create Config File** -> Generates `.secrets/config.json` with your account identifier
+6. **Send Test Events** -> Streams 10 sample events to verify end-to-end flow
 
 **Total Time:** ~2 minutes of setup + ~1 minute of execution = ~3 minutes
 
@@ -88,15 +88,15 @@ Step 1: Account Identifier
 Enter your Snowflake account identifier
 (Format: orgname-accountname, from deploy_all.sql output)
 
-Account: █
+Account: #
 ```
 
 **Paste your account** (e.g., `myorg-myaccount`) and press Enter.
 
 **The script will:**
-- ✅ Generate RSA key pair → `.secrets/keys/rsa_key.p8`, `rsa_key.pub`
-- ✅ Create SQL script → `.secrets/configure_auth_READY.sql` (with your public key embedded)
-- ✅ Display instructions for Snowsight
+- OK Generate RSA key pair -> `.secrets/keys/rsa_key.p8`, `rsa_key.pub`
+- OK Create SQL script -> `.secrets/configure_auth_READY.sql` (with your public key embedded)
+- OK Display instructions for Snowsight
 
 **You'll see:**
 
@@ -105,16 +105,16 @@ Account: █
 Step 2: Configure Authentication in Snowflake
 ========================================
 
-📋 COPY THIS ENTIRE BLOCK TO SNOWSIGHT:
+ COPY THIS ENTIRE BLOCK TO SNOWSIGHT:
 
    File: .secrets/configure_auth_READY.sql
-   
+
    1. Open Snowsight
    2. Create new worksheet
    3. Paste the ENTIRE file contents
    4. Click "Run All"
-   5. Verify "✅ Authentication configured" message
-   
+   5. Verify "OK Authentication configured" message
+
 Press Enter when SQL execution is complete...
 ```
 
@@ -123,30 +123,30 @@ Press Enter when SQL execution is complete...
 2. Copy entire contents
 3. Paste into new Snowsight worksheet
 4. Click **"Run All"**
-5. Verify you see: `✅ Authentication configured`
+5. Verify you see: `OK Authentication configured`
 
 **Return to terminal and press Enter.**
 
 **The script continues:**
-- ✅ Creates Python virtual environment
-- ✅ Installs `snowflake-ingest` SDK
-- ✅ Generates `config.json` with your account
-- ✅ Sends 10 test events
+- OK Creates Python virtual environment
+- OK Installs `snowflake-ingest` SDK
+- OK Generates `config.json` with your account
+- OK Sends 10 test events
 
 **Expected Output:**
 ```
 ========================================
 Step 3: Python Environment Setup
 ========================================
-✓ Virtual environment created (.venv)
-✓ Activated virtual environment
-✓ Installing Snowflake Ingest SDK...
-✓ SDK installed successfully
+OK Virtual environment created (.venv)
+OK Activated virtual environment
+OK Installing Snowflake Ingest SDK...
+OK SDK installed successfully
 
 ========================================
 Step 4: Configuration File
 ========================================
-✓ Created config.json with your account details
+OK Created config.json with your account details
   Account: myorg-myaccount
   User: SFE_INGEST_USER
   Target: SNOWFLAKE_EXAMPLE.RAW_INGESTION.RAW_BADGE_EVENTS
@@ -154,19 +154,19 @@ Step 4: Configuration File
 ========================================
 Step 5: Send Test Events
 ========================================
-✓ Loading configuration...
-✓ Initializing Snowpipe Streaming SDK...
-✓ SDK authenticated (JWT handled automatically)
-✓ Streaming 10 events...
-✓ Successfully sent 10 events
+OK Loading configuration...
+OK Initializing Snowpipe Streaming SDK...
+OK SDK authenticated (JWT handled automatically)
+OK Streaming 10 events...
+OK Successfully sent 10 events
 
-✅ SUCCESS - All events delivered
+OK SUCCESS - All events delivered
 
 Verify in Snowsight:
   SELECT COUNT(*) FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.RAW_BADGE_EVENTS;
 ```
 
-**→ Skip to [Step 3: Verify Data Flow](#step-3-verify-data-flow)**
+**-> Skip to [Step 3: Verify Data Flow](#step-3-verify-data-flow)**
 
 ---
 
@@ -198,7 +198,7 @@ openssl genrsa 2048 | openssl pkcs8 -topk8 -inform PEM -out keys/rsa_key.p8 -noc
 openssl rsa -in keys/rsa_key.p8 -pubout -outform PEM > keys/rsa_key.pub
 ```
 
-**⚠️ Security Note:** 
+**WARNING Security Note:**
 - Keep `rsa_key.p8` secure (never commit, never email)
 - Set permissions: `chmod 600 keys/rsa_key.p8` (Unix/Mac)
 
@@ -213,7 +213,7 @@ USE ROLE SECURITYADMIN;
 
 -- Create service account
 CREATE USER IF NOT EXISTS SFE_INGEST_USER
-  COMMENT = 'DEMO: Snowpipe Streaming SDK user | Expires: 2026-01-01';
+  COMMENT = 'DEMO: Snowpipe Streaming SDK user | Expires: 2026-02-05';
 
 -- Register public key (paste contents of keys/rsa_key.pub)
 ALTER USER SFE_INGEST_USER
@@ -235,7 +235,7 @@ GRANT OPERATE ON PIPE SNOWFLAKE_EXAMPLE.RAW_INGESTION.SFE_BADGE_EVENTS_PIPE TO R
 SHOW GRANTS TO ROLE sfe_ingest_role;
 ```
 
-**Run in Snowsight** → Should see `✅ Grants confirmed`
+**Run in Snowsight** -> Should see `OK Grants confirmed`
 
 ### 2.3 Setup Python Environment Manually
 
@@ -274,7 +274,7 @@ cd simulator
 # send_events.bat     # Windows
 ```
 
-**Expected:** `✅ SUCCESS: All events delivered to Snowflake`
+**Expected:** `OK SUCCESS: All events delivered to Snowflake`
 
 ---
 
@@ -287,7 +287,7 @@ Verify events landed in the raw table:
 ```sql
 USE SCHEMA RAW_INGESTION;
 
-SELECT 
+SELECT
     badge_id,
     user_id,
     zone_id,
@@ -327,12 +327,12 @@ Look for `STATE = started` in the output.
 ### Wait for Task Execution
 
 Tasks run every 1 minute. Wait up to 2 minutes for:
-- Task 1: Dedupe raw → staging
-- Task 2: Enrich staging → analytics
+- Task 1: Dedupe raw -> staging
+- Task 2: Enrich staging -> analytics
 
 **Check task execution history:**
 ```sql
-SELECT 
+SELECT
     name,
     state,
     scheduled_time,
@@ -353,7 +353,7 @@ LIMIT 5;
 Verify deduplication worked:
 
 ```sql
-SELECT 
+SELECT
     badge_id,
     user_id,
     zone_id,
@@ -374,7 +374,7 @@ LIMIT 10;
 Verify dimensional enrichment worked:
 
 ```sql
-SELECT 
+SELECT
     a.event_sk,
     a.user_id,
     u.user_name,
@@ -387,9 +387,9 @@ SELECT
     a.signal_strength,
     a.dwell_time_minutes
 FROM ANALYTICS_LAYER.FCT_ACCESS_EVENTS a
-LEFT JOIN ANALYTICS_LAYER.DIM_USERS u 
+LEFT JOIN ANALYTICS_LAYER.DIM_USERS u
     ON a.user_id = u.user_id AND u.is_current = TRUE
-LEFT JOIN ANALYTICS_LAYER.DIM_ZONES z 
+LEFT JOIN ANALYTICS_LAYER.DIM_ZONES z
     ON a.zone_id = z.zone_id AND z.is_current = TRUE
 ORDER BY a.event_timestamp DESC
 LIMIT 10;
@@ -410,15 +410,20 @@ LIMIT 10;
 Check how long data takes to flow through the pipeline:
 
 ```sql
-SELECT * 
+SELECT
+  layer,
+  last_update,
+  seconds_since_update,
+  row_count,
+  health_status
 FROM RAW_INGESTION.V_END_TO_END_LATENCY
-ORDER BY avg_latency_seconds DESC
+ORDER BY seconds_since_update DESC
 LIMIT 10;
 ```
 
 **Expected Latency:**
-- Raw → Staging: ~60 seconds (1-minute task schedule)
-- Staging → Analytics: ~60 seconds (1-minute task schedule)
+- Raw -> Staging: ~60 seconds (1-minute task schedule)
+- Staging -> Analytics: ~60 seconds (1-minute task schedule)
 - **Total End-to-End:** < 2 minutes
 
 ### Ingestion Metrics
@@ -426,7 +431,18 @@ LIMIT 10;
 View ingestion rate and volume:
 
 ```sql
-SELECT * 
+SELECT
+  ingestion_hour,
+  event_count,
+  events_per_second,
+  unique_badges,
+  unique_zones,
+  avg_signal_strength,
+  weak_signal_count,
+  weak_signal_pct,
+  entry_count,
+  exit_count,
+  net_occupancy_change
 FROM RAW_INGESTION.V_INGESTION_METRICS
 ORDER BY ingestion_hour DESC
 LIMIT 24;
@@ -442,7 +458,15 @@ LIMIT 24;
 Monitor task success/failure rates:
 
 ```sql
-SELECT * 
+SELECT
+  task_name,
+  state,
+  scheduled_time,
+  completed_time,
+  duration_seconds,
+  error_code,
+  error_message,
+  execution_status
 FROM RAW_INGESTION.V_TASK_EXECUTION_HISTORY
 ORDER BY scheduled_time DESC
 LIMIT 10;
@@ -458,7 +482,17 @@ LIMIT 10;
 Check for duplicates, orphans, and data quality issues:
 
 ```sql
-SELECT * 
+SELECT
+  total_raw_events,
+  total_staged_events,
+  total_fact_events,
+  duplicate_count,
+  duplicate_rate_pct,
+  orphan_user_count,
+  orphan_zone_count,
+  orphan_rate_pct,
+  weak_signal_count,
+  weak_signal_rate_pct
 FROM RAW_INGESTION.V_DATA_QUALITY_METRICS;
 ```
 
@@ -475,14 +509,14 @@ FROM RAW_INGESTION.V_DATA_QUALITY_METRICS;
 
 #### "SDK Authentication Failed"
 
-**Symptom:** Error during SDK initialization or streaming  
-**Cause:** RSA public key not registered or doesn't match private key  
+**Symptom:** Error during SDK initialization or streaming
+**Cause:** RSA public key not registered or doesn't match private key
 
 **Debug Steps:**
 
 1. **Verify public key is registered:**
 ```sql
-DESCRIBE USER sfe_ingest_user;
+DESCRIBE USER SFE_INGEST_USER;
 -- Look for RSA_PUBLIC_KEY_FP field (should be set)
 ```
 
@@ -504,7 +538,7 @@ SHOW GRANTS TO ROLE sfe_ingest_role;
 -- Unix/macOS: cat keys/rsa_key.pub.b64
 -- Windows: type keys\rsa_key.pub.b64
 
-ALTER USER sfe_ingest_user 
+ALTER USER SFE_INGEST_USER
   SET RSA_PUBLIC_KEY = '<paste single-line base64 string>';
 ```
 
@@ -517,8 +551,8 @@ ALTER USER sfe_ingest_user
 
 #### "Config file not found"
 
-**Symptom:** `FileNotFoundError: config.json`  
-**Cause:** Config file not created or wrong directory  
+**Symptom:** `FileNotFoundError: config.json`
+**Cause:** Config file not created or wrong directory
 **Fix:**
 ```bash
 cd .secrets
@@ -532,8 +566,8 @@ If missing, run the setup script:
 
 #### "Module 'snowflake' not found"
 
-**Symptom:** `ModuleNotFoundError: No module named 'snowflake'`  
-**Cause:** Virtual environment not activated or SDK not installed  
+**Symptom:** `ModuleNotFoundError: No module named 'snowflake'`
+**Cause:** Virtual environment not activated or SDK not installed
 **Fix:**
 ```bash
 # Activate venv
@@ -546,16 +580,16 @@ pip install -r simulator/requirements.txt
 
 #### "Connection timeout"
 
-**Symptom:** Request times out after 30 seconds  
-**Cause:** Network firewall blocking HTTPS:443 to Snowflake  
+**Symptom:** Request times out after 30 seconds
+**Cause:** Network firewall blocking HTTPS:443 to Snowflake
 **Fix:** Verify outbound HTTPS is allowed to `*.snowflakecomputing.com`
 
 ### Data Flow Issues
 
 #### "No data in RAW_BADGE_EVENTS"
 
-**Symptom:** Table empty after running simulator  
-**Cause:** Pipe error or insufficient privileges  
+**Symptom:** Table empty after running simulator
+**Cause:** Pipe error or insufficient privileges
 **Check:**
 ```sql
 -- Check pipe status
@@ -563,7 +597,13 @@ SHOW PIPES IN SCHEMA RAW_INGESTION;
 -- Look for EXECUTION_STATE
 
 -- Check pipe history
-SELECT * 
+SELECT
+  file_name,
+  last_load_time,
+  status,
+  row_count,
+  error_count,
+  first_error_message
 FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY(
     TABLE_NAME => 'RAW_INGESTION.RAW_BADGE_EVENTS',
     START_TIME => DATEADD('hour', -1, CURRENT_TIMESTAMP())
@@ -575,8 +615,8 @@ SHOW PIPE ERRORS IN PIPE sfe_badge_events_pipe;
 
 #### "Tasks not executing"
 
-**Symptom:** No rows in staging or analytics tables  
-**Cause:** Tasks still suspended or erroring  
+**Symptom:** No rows in staging or analytics tables
+**Cause:** Tasks still suspended or erroring
 **Check:**
 ```sql
 -- Verify tasks are resumed
@@ -584,7 +624,14 @@ SHOW TASKS IN SCHEMA RAW_INGESTION;
 -- STATE should be 'started', not 'suspended'
 
 -- Check task errors
-SELECT * 
+SELECT
+  name,
+  state,
+  scheduled_time,
+  completed_time,
+  error_code,
+  error_message,
+  query_id
 FROM TABLE(INFORMATION_SCHEMA.TASK_HISTORY())
 WHERE NAME IN ('sfe_raw_to_staging_task', 'sfe_staging_to_analytics_task')
   AND STATE = 'FAILED'
@@ -600,12 +647,12 @@ ALTER TASK sfe_staging_to_analytics_task RESUME;
 
 #### "Orphan records in fact table"
 
-**Symptom:** FCT_ACCESS_EVENTS has NULL user_name or zone_name  
-**Cause:** user_id or zone_id in events doesn't match dimension tables  
+**Symptom:** FCT_ACCESS_EVENTS has NULL user_name or zone_name
+**Cause:** user_id or zone_id in events doesn't match dimension tables
 **Check:**
 ```sql
 -- Find orphaned events
-SELECT 
+SELECT
     badge_id,
     user_id,
     zone_id
@@ -661,14 +708,18 @@ To test higher volumes, increase `sample_events` in `config.json`:
 **Monitor Performance:**
 ```sql
 -- Check warehouse credit consumption
-SELECT * 
+SELECT
+  warehouse_name,
+  start_time,
+  end_time,
+  credits_used
 FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY
 WHERE WAREHOUSE_NAME = 'COMPUTE_WH'
   AND START_TIME >= DATEADD('hour', -1, CURRENT_TIMESTAMP())
 ORDER BY START_TIME DESC;
 
 -- Check task duration trends
-SELECT 
+SELECT
     NAME,
     AVG(DATEDIFF('second', SCHEDULED_TIME, COMPLETED_TIME)) AS avg_duration_sec,
     MAX(DATEDIFF('second', SCHEDULED_TIME, COMPLETED_TIME)) AS max_duration_sec,
@@ -684,11 +735,11 @@ GROUP BY NAME;
 
 ## What's Next?
 
-✅ **Testing Complete!**
+OK **Testing Complete!**
 
-**→ Next:** [`04-MONITORING.md`](04-MONITORING.md) - Learn how to monitor the pipeline in production
+**-> Next:** [`04-MONITORING.md`](04-MONITORING.md) - Learn how to monitor the pipeline in production
 
-**For Data Providers:** 
+**For Data Providers:**
 - [`06-DATA-PROVIDER-QUICKSTART.md`](06-DATA-PROVIDER-QUICKSTART.md) - Send this 1-page guide to vendors
 - [`05-API-HANDOFF.md`](05-API-HANDOFF.md) - Complete API reference for troubleshooting
 
@@ -704,4 +755,3 @@ GROUP BY NAME;
 ### External Data Providers
 - [`06-DATA-PROVIDER-QUICKSTART.md`](06-DATA-PROVIDER-QUICKSTART.md) - **Send to vendors** (10-minute integration)
 - [`05-API-HANDOFF.md`](05-API-HANDOFF.md) - Complete API reference (troubleshooting)
-

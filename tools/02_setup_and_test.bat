@@ -1,11 +1,11 @@
 @echo off
 REM ##############################################################################
 REM Master Orchestration Script - Simple Stream Demo (Windows)
-REM 
+REM
 REM PURPOSE: Fully automated setup and testing with step-by-step execution
 REM TIME: ~2 minutes (full run)
-REM 
-REM USAGE: 
+REM
+REM USAGE:
 REM   .\tools\02_setup_and_test.bat              Run all steps (default)
 REM   .\tools\02_setup_and_test.bat --all        Explicitly run all steps
 REM   .\tools\02_setup_and_test.bat --step 5     Run single step (1-7)
@@ -70,7 +70,7 @@ if "%RUN_ALL%"=="true" (
     call :step_6_send_events
     call :step_7_verify
     call :security_check
-    
+
     echo.
     echo ====================================================================
     echo   SETUP COMPLETE
@@ -96,7 +96,7 @@ if "%RUN_ALL%"=="true" (
     if "%SPECIFIC_STEP%"=="5" call :step_5_setup_python
     if "%SPECIFIC_STEP%"=="6" call :step_6_send_events
     if "%SPECIFIC_STEP%"=="7" call :step_7_verify
-    
+
     echo.
     echo Step %SPECIFIC_STEP% completed
 )
@@ -205,9 +205,9 @@ REM Generate SQL script
 (
 echo /*******************************************************************************
 echo  * GENERATED: Key-Pair Authentication Setup
-echo  * 
+echo  *
 echo  * WARNING: AUTO-GENERATED - DO NOT COMMIT THIS FILE
-echo  * 
+echo  *
 echo  * PURPOSE: Register public key for SFE_INGEST_USER
 echo  * GENERATED: %date% %time%
 echo  ******************************************************************************/
@@ -216,7 +216,7 @@ echo USE ROLE SECURITYADMIN;
 echo.
 echo -- Create or update user with public key
 echo CREATE USER IF NOT EXISTS SFE_INGEST_USER
-echo   COMMENT = 'DEMO: Snowpipe Streaming SDK user ^| Expires: 2026-01-01';
+echo   COMMENT = 'DEMO: Snowpipe Streaming SDK user ^| Expires: 2026-02-05';
 echo.
 echo ALTER USER SFE_INGEST_USER
 echo   SET RSA_PUBLIC_KEY = '!PUBLIC_KEY!';
@@ -236,8 +236,8 @@ echo USE ROLE SECURITYADMIN;
 echo SHOW USERS LIKE 'SFE_INGEST_USER';
 echo SHOW GRANTS TO ROLE sfe_ingest_role;
 echo.
-echo SELECT 
-echo   '✅ Authentication configured' AS status,
+echo SELECT
+echo   'Authentication configured' AS status,
 echo   'User: SFE_INGEST_USER' AS user_info,
 echo   'Role: sfe_ingest_role' AS role_info,
 echo   'Ready to send events' AS next_step;
@@ -337,7 +337,7 @@ echo.
 echo Run this query in Snowsight to verify:
 echo.
 echo -- Check ingested events
-echo SELECT 
+echo SELECT
 echo   COUNT(^*^) AS total_events,
 echo   MIN(RECORD_CONTENT:timestamp^)::TIMESTAMP_NTZ AS first_event,
 echo   MAX(RECORD_CONTENT:timestamp^)::TIMESTAMP_NTZ AS last_event
@@ -348,7 +348,13 @@ echo SELECT COUNT(^*^) AS processed_events
 echo FROM SNOWFLAKE_EXAMPLE.STAGING_LAYER.STG_BADGE_EVENTS;
 echo.
 echo -- View analytics
-echo SELECT * FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_INGESTION_HEALTH;
+echo SELECT
+echo   layer,
+echo   last_update,
+echo   seconds_since_update,
+echo   row_count,
+echo   health_status
+echo FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.V_END_TO_END_LATENCY;
 echo.
 goto :eof
 

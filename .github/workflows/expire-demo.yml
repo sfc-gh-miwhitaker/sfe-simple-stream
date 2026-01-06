@@ -1,135 +1,134 @@
-name: Demo Expiration Check
-
-# This workflow automatically archives and makes the repository private after 30 days
-# Expiration Date: 2026-01-01
-# Created: 2025-12-02
+name: Expire Demo Repository
 
 on:
   schedule:
-    # Run daily at 00:00 UTC
-    - cron: '0 0 * * *'
-  workflow_dispatch:
-    # Allow manual triggering for testing
+    - cron: "0 12 * * *" # daily at 12:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
 
 jobs:
-  check-expiration:
+  expire:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      
     steps:
-      - name: Check expiration date
-        id: check_date
-        run: |
-          EXPIRATION_DATE="2026-01-01"
-          CURRENT_DATE=$(date +%Y-%m-%d)
-          
-          echo "Current date: $CURRENT_DATE"
-          echo "Expiration date: $EXPIRATION_DATE"
-          
-          if [[ "$CURRENT_DATE" > "$EXPIRATION_DATE" ]] || [[ "$CURRENT_DATE" == "$EXPIRATION_DATE" ]]; then
-            echo "expired=true" >> $GITHUB_OUTPUT
-            echo "⚠️  Demo has expired!"
-          else
-            echo "expired=false" >> $GITHUB_OUTPUT
-            echo "✓ Demo is still active"
-            
-            # Calculate days remaining
-            DAYS_REMAINING=$(( ( $(date -d "$EXPIRATION_DATE" +%s) - $(date -d "$CURRENT_DATE" +%s) ) / 86400 ))
-            echo "Days remaining: $DAYS_REMAINING"
-          fi
-      
-      - name: Update README with expiration warning
-        if: steps.check_date.outputs.expired == 'true'
-        uses: actions/checkout@v3
-        
-      - name: Add expiration notice to README
-        if: steps.check_date.outputs.expired == 'true'
-        run: |
-          # Create expiration notice
-          cat > EXPIRED.md << 'EOF'
-          # ⚠️ DEMO EXPIRED
-          
-          This demonstration project expired on 2026-01-01.
-          
-          ## Why Expired?
-          
-          This demo was created to showcase Snowflake features current as of December 2025. 
-          To ensure users don't encounter outdated syntax or deprecated features, we automatically 
-          archive demos after 30 days.
-          
-          ## What Now?
-          
-          - **For learning:** The code and documentation remain viewable (read-only)
-          - **For updates:** Contact the Snowflake SE team for an updated version
-          - **For production:** This was a reference implementation - review and customize for your needs
-          
-          ## Archived Content
-          
-          The original README and all documentation have been preserved in the repository history.
-          
-          ---
-          
-          **Original Created:** 2025-12-02  
-          **Expired:** 2026-01-01  
-          **Author:** SE Community
-          EOF
-          
-          # Prepend expiration notice to README
-          cat EXPIRED.md README.md > README.tmp
-          mv README.tmp README.md
-          
-          # Update badges
-          sed -i 's/Status-ACTIVE-green/Status-EXPIRED-red/g' README.md
-          sed -i 's/Ready%20to%20Run-Yes-green/Ready%20to%20Run-No-red/g' README.md
-      
-      - name: Commit expiration notice
-        if: steps.check_date.outputs.expired == 'true'
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add README.md EXPIRED.md
-          git commit -m "chore: mark demo as expired (automated)" || echo "No changes to commit"
-          git push || echo "Nothing to push"
-      
-      - name: Archive repository
-        if: steps.check_date.outputs.expired == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Archive the repository (make read-only)
-          gh api \
-            --method PATCH \
-            -H "Accept: application/vnd.github+json" \
-            /repos/${{ github.repository }} \
-            -f archived=true
-          
-          echo "✓ Repository archived (read-only)"
-      
-      - name: Make repository private
-        if: steps.check_date.outputs.expired == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Make repository private
-          gh api \
-            --method PATCH \
-            -H "Accept: application/vnd.github+json" \
-            /repos/${{ github.repository }} \
-            -f private=true
-          
-          echo "✓ Repository made private"
-      
-      - name: Create expiration issue
-        if: steps.check_date.outputs.expired == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Create an issue to notify maintainers
-          gh issue create \
-            --title "Demo Expired - Repository Archived" \
-            --body "This demo has reached its 30-day expiration date (2026-01-01) and has been automatically archived and made private. The repository is now read-only. If you need an updated version, please create a new demo with current Snowflake features." \
-            --label "expired"
-          
-          echo "✓ Expiration issue created"
+      - name: Checkout
+        uses: actions/checkout@v4
 
+      - name: Parse expiration date from deploy_all.sql
+        id: expiry
+        shell: bash
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import datetime as dt
+          import pathlib
+          import re
+          p = pathlib.Path("deploy_all.sql")
+          text = p.read_text(encoding="utf-8", errors="replace")
+          m = re.search(r"^\\s*\\*\\s*EXPIRES:\\s*(\\d{4}-\\d{2}-\\d{2})\\s*$", text, re.M)
+          if not m:
+            raise SystemExit("ERROR: Could not find header line '* EXPIRES: YYYY-MM-DD' in deploy_all.sql")
+          expires = dt.date.fromisoformat(m.group(1))
+          today = dt.date.today()
+          days_remaining = (expires - today).days
+          print(f"expires={expires.isoformat()}")
+          print(f"days_remaining={days_remaining}")
+          PY
+
+      - name: Create expiration warning issue (7 days)
+        if: ${{ steps.expiry.outputs.days_remaining != '' && fromJSON(steps.expiry.outputs.days_remaining) <= 7 && fromJSON(steps.expiry.outputs.days_remaining) > 1 }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const expires = `${{ steps.expiry.outputs.expires }}`;
+            const days = Number(`${{ steps.expiry.outputs.days_remaining }}`);
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const title = `Demo expires on ${expires}`;
+            const body = [
+              `This demonstration repository is timeboxed and will expire on ${expires}.`,
+              ``,
+              `Expiration is read from \\`deploy_all.sql\\` (single source of truth).`,
+              ``,
+              `Days remaining: ${days}`,
+            ].join(\"\\n\");
+            const { data: issues } = await github.rest.issues.listForRepo({ owner, repo, state: \"open\", per_page: 100 });
+            if (issues.some(i => i.title === title)) return;
+            await github.rest.issues.create({ owner, repo, title, body });
+
+      - name: Create expiration warning issue (1 day)
+        if: ${{ steps.expiry.outputs.days_remaining != '' && fromJSON(steps.expiry.outputs.days_remaining) == 1 }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const expires = `${{ steps.expiry.outputs.expires }}`;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const title = `Demo expires tomorrow (${expires})`;
+            const body = [
+              `This demonstration repository expires tomorrow (${expires}).`,
+              ``,
+              `Expiration is read from \\`deploy_all.sql\\` (single source of truth).`,
+            ].join(\"\\n\");
+            const { data: issues } = await github.rest.issues.listForRepo({ owner, repo, state: \"open\", per_page: 100 });
+            if (issues.some(i => i.title === title)) return;
+            await github.rest.issues.create({ owner, repo, title, body });
+
+      - name: Create expires-today issue
+        if: ${{ steps.expiry.outputs.days_remaining != '' && fromJSON(steps.expiry.outputs.days_remaining) == 0 }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const expires = `${{ steps.expiry.outputs.expires }}`;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const title = `Demo expires today (${expires})`;
+            const body = [
+              `This demonstration repository expires today (${expires}).`,
+              ``,
+              `Expiration is read from \\`deploy_all.sql\\` (single source of truth).`,
+            ].join(\"\\n\");
+            const { data: issues } = await github.rest.issues.listForRepo({ owner, repo, state: \"open\", per_page: 100 });
+            if (issues.some(i => i.title === title)) return;
+            await github.rest.issues.create({ owner, repo, title, body });
+
+      - name: Create expired issue
+        if: ${{ steps.expiry.outputs.days_remaining != '' && fromJSON(steps.expiry.outputs.days_remaining) < 0 }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const expires = `${{ steps.expiry.outputs.expires }}`;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const title = `Demo expired on ${expires}`;
+            const body = [
+              `This demonstration repository has expired (expired on ${expires}).`,
+              ``,
+              `Deployment is blocked by \\`deploy_all.sql\\`.`,
+              ``,
+              `Next step: archive the repository and make it private (if required by policy).`,
+            ].join(\"\\n\");
+            const { data: issues } = await github.rest.issues.listForRepo({ owner, repo, state: \"open\", per_page: 100 });
+            if (issues.some(i => i.title === title)) return;
+            await github.rest.issues.create({ owner, repo, title, body });
+
+      - name: Attempt archive + make private (requires MASTER_PAT)
+        if: ${{ steps.expiry.outputs.days_remaining != '' && fromJSON(steps.expiry.outputs.days_remaining) < 0 }}
+        shell: bash
+        env:
+          MASTER_PAT: ${{ secrets.MASTER_PAT }}
+        run: |
+          if [ -z "${MASTER_PAT}" ]; then
+            echo "MASTER_PAT not set; skipping archive/private attempt."
+            exit 0
+          fi
+          owner="${GITHUB_REPOSITORY%/*}"
+          repo="${GITHUB_REPOSITORY#*/}"
+          curl -sSf \
+            -X PATCH \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${MASTER_PAT}" \
+            "https://api.github.com/repos/${owner}/${repo}" \
+            -d '{"archived":true,"private":true}' >/dev/null
+          echo "Archive/private request sent."

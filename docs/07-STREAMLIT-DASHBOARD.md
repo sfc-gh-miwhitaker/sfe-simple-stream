@@ -1,6 +1,6 @@
 # Streamlit Dashboard - Real-Time Monitoring
 
-**Time to Deploy:** ~1 minute  
+**Time to Deploy:** ~1 minute
 **Prerequisites:** Completed [`04-MONITORING.md`](04-MONITORING.md) (monitoring views created)
 
 ---
@@ -10,11 +10,11 @@
 This guide shows you how to deploy the native Snowflake Streamlit dashboard for real-time pipeline monitoring.
 
 **Key Features:**
-- ❄️ **100% Native Snowflake** - Runs entirely within Snowflake (no external hosting)
-- 📊 **6 Interactive Views** - Overview, Ingestion, Health, Costs, Tasks, Query Efficiency
-- 🔄 **Auto-Refresh** - Dashboard updates every 60 seconds automatically
-- 📈 **Interactive Charts** - Plotly visualizations for trend analysis
-- 🎯 **Zero Setup** - No credentials or configuration files needed
+-  **100% Native Snowflake** - Runs entirely within Snowflake (no external hosting)
+-  **6 Interactive Views** - Overview, Ingestion, Health, Costs, Tasks, Query Efficiency
+-  **Auto-Refresh** - Dashboard updates every 60 seconds automatically
+-  **Interactive Charts** - Plotly visualizations for trend analysis
+-  **Zero Setup** - No credentials or configuration files needed
 
 ---
 
@@ -36,7 +36,7 @@ Copy/paste into Snowsight worksheet:
 
 **Expected output:**
 ```
-✅ STREAMLIT DASHBOARD DEPLOYED
+OK STREAMLIT DASHBOARD DEPLOYED
 Dashboard Name: SFE_SIMPLE_STREAM_MONITOR
 Location: SNOWFLAKE_EXAMPLE.RAW_INGESTION
 ```
@@ -53,7 +53,7 @@ Location: SNOWFLAKE_EXAMPLE.RAW_INGESTION
 
 ## Dashboard Features
 
-### 🎯 Overview Page
+###  Overview Page
 
 **Key Metrics:**
 - Total events ingested (last hour)
@@ -63,7 +63,7 @@ Location: SNOWFLAKE_EXAMPLE.RAW_INGESTION
 
 **Pipeline Health Indicators:**
 - **RAW Layer** - Ingestion status
-- **STAGING Layer** - Deduplication status  
+- **STAGING Layer** - Deduplication status
 - **ANALYTICS Layer** - Enrichment status
 
 **Data Freshness Table:**
@@ -73,7 +73,7 @@ Location: SNOWFLAKE_EXAMPLE.RAW_INGESTION
 
 ---
 
-### 📈 Ingestion Metrics Page
+###  Ingestion Metrics Page
 
 **Charts:**
 1. **Events Over Time** - Hourly event volume (last 24 hours)
@@ -91,7 +91,7 @@ Location: SNOWFLAKE_EXAMPLE.RAW_INGESTION
 
 ---
 
-### ⏱️ Pipeline Health Page
+###  Pipeline Health Page
 
 **Real-Time Status:**
 - Layer-by-layer health indicators
@@ -110,7 +110,7 @@ Location: SNOWFLAKE_EXAMPLE.RAW_INGESTION
 
 ---
 
-### 💰 Cost Tracking Page
+###  Cost Tracking Page
 
 **30-Day Cost Analysis:**
 - Total credits consumed
@@ -131,7 +131,7 @@ Location: SNOWFLAKE_EXAMPLE.RAW_INGESTION
 
 ---
 
-### 🔧 Task Performance Page
+###  Task Performance Page
 
 **Execution Monitoring:**
 - Total executions (24 hours)
@@ -151,7 +151,7 @@ Location: SNOWFLAKE_EXAMPLE.RAW_INGESTION
 
 ---
 
-### 📊 Query Efficiency Page
+###  Query Efficiency Page
 
 **Pruning Analysis:**
 - Total queries (24 hours)
@@ -177,18 +177,18 @@ Location: SNOWFLAKE_EXAMPLE.RAW_INGESTION
 
 ```
 Git Repository (sfe-simple-stream)
-  └─ streamlit_app.py
-  └─ requirements.txt
-          ↓
+  +- streamlit_app.py
+  +- requirements.txt
+          v
       COPY FILES
-          ↓
+          v
   SFE_STREAMLIT_STAGE
-          ↓
+          v
    CREATE STREAMLIT
-          ↓
+          v
 SFE_SIMPLE_STREAM_MONITOR
 (Runs in Snowflake compute)
-          ↓
+          v
   Monitoring Views
   (V_CHANNEL_STATUS,
    V_INGESTION_METRICS,
@@ -197,11 +197,11 @@ SFE_SIMPLE_STREAM_MONITOR
 ```
 
 **Benefits:**
-- ✅ No external hosting required
-- ✅ Automatic authentication (Snowflake session)
-- ✅ Runs on Snowflake warehouse (usage tracked)
-- ✅ Integrated with Snowflake security model
-- ✅ Accessible from Snowsight UI
+- OK No external hosting required
+- OK Automatic authentication (Snowflake session)
+- OK Runs on Snowflake warehouse (usage tracked)
+- OK Integrated with Snowflake security model
+- OK Accessible from Snowsight UI
 
 ---
 
@@ -233,7 +233,7 @@ Edit `streamlit_app.py` to add new queries:
 ```python
 # Add your custom query
 custom_df = query_snowflake("""
-    SELECT 
+    SELECT
         badge_id,
         COUNT(*) AS event_count
     FROM RAW_BADGE_EVENTS
@@ -244,7 +244,7 @@ custom_df = query_snowflake("""
 """)
 
 # Display in dashboard
-st.subheader("🏆 Top Badges (Last Hour)")
+st.subheader(" Top Badges (Last Hour)")
 st.dataframe(custom_df, use_container_width=True)
 ```
 
@@ -268,7 +268,7 @@ Dashboard uses Snowflake brand colors by default. To customize, edit queries or 
 
 ### "Streamlit app not found"
 
-**Cause:** Stage doesn't contain files  
+**Cause:** Stage doesn't contain files
 **Fix:**
 ```sql
 -- Verify files in stage
@@ -282,7 +282,7 @@ LIST @SFE_STREAMLIT_STAGE;
 
 ### "Permission denied"
 
-**Cause:** Your role doesn't have access  
+**Cause:** Your role doesn't have access
 **Fix:**
 ```sql
 -- Grant access to your role
@@ -293,7 +293,7 @@ GRANT USAGE ON STREAMLIT SFE_SIMPLE_STREAM_MONITOR TO ROLE YOUR_ROLE;
 
 ### "Views not found" errors in dashboard
 
-**Cause:** Monitoring views not created  
+**Cause:** Monitoring views not created
 **Fix:**
 ```sql
 -- Create monitoring views first
@@ -304,7 +304,7 @@ GRANT USAGE ON STREAMLIT SFE_SIMPLE_STREAM_MONITOR TO ROLE YOUR_ROLE;
 
 ### "No data available" messages
 
-**Cause:** No events ingested yet or tasks not running  
+**Cause:** No events ingested yet or tasks not running
 **Fix:**
 1. Send test events (see [`03-TESTING.md`](03-TESTING.md))
 2. Resume tasks:
@@ -317,7 +317,7 @@ GRANT USAGE ON STREAMLIT SFE_SIMPLE_STREAM_MONITOR TO ROLE YOUR_ROLE;
 
 ### Dashboard loads slowly
 
-**Cause:** Warehouse may be suspended or undersized  
+**Cause:** Warehouse may be suspended or undersized
 **Fix:**
 ```sql
 -- Check warehouse status
@@ -385,25 +385,24 @@ DROP STAGE IF EXISTS SNOWFLAKE_EXAMPLE.RAW_INGESTION.SFE_STREAMLIT_STAGE;
 
 ## FAQ
 
-**Q: Can I share the dashboard with others?**  
+**Q: Can I share the dashboard with others?**
 A: Yes, grant USAGE on the Streamlit app:
 ```sql
 GRANT USAGE ON STREAMLIT SFE_SIMPLE_STREAM_MONITOR TO ROLE analyst_role;
 ```
 
-**Q: Does the dashboard work with my own data?**  
+**Q: Does the dashboard work with my own data?**
 A: Yes, if you point your data to `SNOWFLAKE_EXAMPLE.RAW_INGESTION.RAW_BADGE_EVENTS` table.
 
-**Q: Can I embed the dashboard in a web page?**  
+**Q: Can I embed the dashboard in a web page?**
 A: Native Snowflake Streamlit apps run in Snowsight. For external embedding, consider Snowflake's embedding capabilities (Enterprise+ edition).
 
-**Q: How do I add authentication/authorization?**  
+**Q: How do I add authentication/authorization?**
 A: Snowflake Streamlit apps inherit Snowflake's security model. Users need appropriate role grants to access the app.
 
-**Q: Can I run this dashboard externally (outside Snowflake)?**  
+**Q: Can I run this dashboard externally (outside Snowflake)?**
 A: The code is designed for Snowflake native Streamlit. For external deployment, you'd need to modify the connection logic and use `st.connection("snowflake")` with secrets management.
 
 ---
 
-**Ready to monitor?** → Run `@sql/05_streamlit/deploy_streamlit.sql` to deploy!
-
+**Ready to monitor?** -> Run `@sql/05_streamlit/deploy_streamlit.sql` to deploy!

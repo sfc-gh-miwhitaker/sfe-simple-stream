@@ -1,77 +1,32 @@
 # Quick Start - Simple Stream
 
-**Time:** 2 minutes to running pipeline
+Status: ACTIVE (timeboxed; expires 2026-02-05)
 
----
+## Read Me First
 
-## Prerequisites
+This is a timeboxed demo repository. Deployment is blocked by `deploy_all.sql` after the expiration date.
 
-- Snowflake account with ACCOUNTADMIN and SYSADMIN roles
-- Snowsight open (web UI)
+## Deployment (Snowsight)
 
----
+1. Open Snowsight and create a new SQL worksheet.
+2. Copy the full contents of `deploy_all.sql` into the worksheet.
+3. Click "Run All".
 
-## Deploy (45 seconds)
-
-Copy/paste this into a Snowsight worksheet and click "Run All":
-
-```sql
-@deploy_all.sql
-```
-
-✅ **Done!** Pipeline is deployed.
-
----
-
-## Verify (10 seconds)
+## Optional: Verify Existing Data (If Already Deployed Previously)
 
 ```sql
-(validation automatic in deploy_all.sql)
+SELECT
+  badge_id,
+  user_id,
+  zone_id,
+  reader_id,
+  event_timestamp,
+  ingestion_time
+FROM SNOWFLAKE_EXAMPLE.RAW_INGESTION.RAW_BADGE_EVENTS
+ORDER BY ingestion_time DESC
+LIMIT 10;
 ```
-
-Expected output: All checks pass (✓)
-
----
-
-## Test (Optional - 10 minutes)
-
-**Full testing instructions:** [`docs/03-TESTING.md`](docs/03-TESTING.md)
-
-**Quick test:**
-1. Configure auth: `@sql/01_setup/01_configure_auth.sql`
-2. Generate RSA keys (see testing guide)
-3. Run simulator: `cd simulator && ./send_events.sh`
-4. View data: `SELECT * FROM RAW_INGESTION.RAW_BADGE_EVENTS LIMIT 10;`
-
----
-
-## Monitor
-
-```sql
--- Live ingestion metrics
-SELECT * FROM RAW_INGESTION.V_INGESTION_METRICS;
-
--- Pipeline health
-SELECT * FROM RAW_INGESTION.V_END_TO_END_LATENCY;
-```
-
-**Full monitoring guide:** [`docs/04-MONITORING.md`](docs/04-MONITORING.md)
-
----
-
-## Cleanup
-
-```sql
-@sql/99_cleanup/cleanup.sql
-```
-
----
 
 ## Next Steps
 
-For complete setup instructions, see [`docs/01-SETUP.md`](docs/01-SETUP.md)
-
-For architecture details, see [`diagrams/`](diagrams/) directory
-
-For full documentation, see [`README.md`](README.md)
-
+Follow the numbered docs in `docs/` starting with `docs/01-SETUP.md`.

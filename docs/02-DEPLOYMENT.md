@@ -1,6 +1,6 @@
 # Deployment Guide - Simple Stream
 
-**Time to Complete:** ~1 minute  
+**Time to Complete:** ~1 minute
 **Prerequisites:** Completed [`01-SETUP.md`](01-SETUP.md)
 
 ---
@@ -56,9 +56,9 @@ Validation Results:
 +----------+-------+----+
 | OBJECT   | COUNT | OK |
 +----------+-------+----+
-| Schemas  |     4 | ✓  |
-| Tables   |     5 | ✓  |
-| Views    |     7 | ✓  |
+| Schemas  |     4 | OK  |
+| Tables   |     5 | OK  |
+| Views    |     7 | OK  |
 +----------+-------+----+
 ```
 
@@ -67,20 +67,20 @@ Validation Results:
 Run the validation script:
 
 **Validation is now automatic!** The `deploy_all.sql` script includes comprehensive validation at the end. You'll see a summary table showing:
-- ✅ Schemas: 3 / 3
-- ✅ Streams: 1 / 1
-- ✅ Tables: 5 / 5
-- ✅ Tasks: 2 / 2
-- ✅ Views: 7 / 7
+- OK Schemas: 3 / 3
+- OK Streams: 1 / 1
+- OK Tables: 5 / 5
+- OK Tasks: 2 / 2
+- OK Views: 7 / 7
 
 **What it checks:**
-- ✅ All schemas created
-- ✅ All tables exist and have correct structure
-- ✅ Stream is tracking RAW table
-- ✅ Tasks are created (suspended until auth configured)
-- ✅ Pipe is created and ready
-- ✅ Monitoring views are queryable
-- ✅ Sample dimension data loaded
+- OK All schemas created
+- OK All tables exist and have correct structure
+- OK Stream is tracking RAW table
+- OK Tasks are created (suspended until auth configured)
+- OK Pipe is created and ready
+- OK Monitoring views are queryable
+- OK Sample dimension data loaded
 
 **Expected Runtime:** 10 seconds
 
@@ -90,32 +90,32 @@ Comprehensive Validation Report
 ================================
 
 SCHEMAS:
-✓ RAW_INGESTION
-✓ STAGING_LAYER
-✓ ANALYTICS_LAYER
-✓ DEMO_REPO
+OK RAW_INGESTION
+OK STAGING_LAYER
+OK ANALYTICS_LAYER
+OK DEMO_REPO
 
 TABLES:
-✓ RAW_BADGE_EVENTS (0 rows - awaiting data)
-✓ STG_BADGE_EVENTS (0 rows - awaiting data)
-✓ FCT_ACCESS_EVENTS (0 rows - awaiting data)
-✓ DIM_USERS (3 rows - sample data loaded)
-✓ DIM_ZONES (4 rows - sample data loaded)
+OK RAW_BADGE_EVENTS (0 rows - awaiting data)
+OK STG_BADGE_EVENTS (0 rows - awaiting data)
+OK FCT_ACCESS_EVENTS (0 rows - awaiting data)
+OK DIM_USERS (3 rows - sample data loaded)
+OK DIM_ZONES (4 rows - sample data loaded)
 
 STREAMS:
-✓ sfe_badge_events_stream (tracking RAW_BADGE_EVENTS)
+OK sfe_badge_events_stream (tracking RAW_BADGE_EVENTS)
 
 TASKS:
-✓ sfe_raw_to_staging_task (SUSPENDED - awaiting activation)
-✓ sfe_staging_to_analytics_task (SUSPENDED - awaiting activation)
+OK sfe_raw_to_staging_task (SUSPENDED - awaiting activation)
+OK sfe_staging_to_analytics_task (SUSPENDED - awaiting activation)
 
 PIPES:
-✓ sfe_badge_events_pipe (RUNNING - ready for data)
+OK sfe_badge_events_pipe (RUNNING - ready for data)
 
 VIEWS:
-✓ 7 monitoring views created
+OK 7 monitoring views created
 
-Status: DEPLOYMENT SUCCESSFUL ✓
+Status: DEPLOYMENT SUCCESSFUL OK
 ```
 
 ---
@@ -126,76 +126,76 @@ Status: DEPLOYMENT SUCCESSFUL ✓
 
 ```
 SNOWFLAKE_EXAMPLE/
-├── RAW_INGESTION/
-│   ├── RAW_BADGE_EVENTS (table)
-│   ├── sfe_badge_events_stream (stream)
-│   ├── sfe_badge_events_pipe (pipe)
-│   ├── sfe_raw_to_staging_task (task, suspended)
-│   ├── sfe_staging_to_analytics_task (task, suspended)
-│   └── V_* (7 monitoring views)
-├── STAGING_LAYER/
-│   └── STG_BADGE_EVENTS (table)
-├── ANALYTICS_LAYER/
-│   ├── DIM_USERS (table with sample data)
-│   ├── DIM_ZONES (table with sample data)
-│   └── FCT_ACCESS_EVENTS (table, empty)
-└── DEMO_REPO/
-    └── sfe_simple_stream_repo (git repository stage)
++-- RAW_INGESTION/
+|   +-- RAW_BADGE_EVENTS (table)
+|   +-- sfe_badge_events_stream (stream)
+|   +-- sfe_badge_events_pipe (pipe)
+|   +-- sfe_raw_to_staging_task (task, suspended)
+|   +-- sfe_staging_to_analytics_task (task, suspended)
+|   +-- V_* (7 monitoring views)
++-- STAGING_LAYER/
+|   +-- STG_BADGE_EVENTS (table)
++-- ANALYTICS_LAYER/
+|   +-- DIM_USERS (table with sample data)
+|   +-- DIM_ZONES (table with sample data)
+|   +-- FCT_ACCESS_EVENTS (table, empty)
++-- DEMO_REPO/
+    +-- sfe_simple_stream_repo (git repository stage)
 ```
 
 ### Account-Level Objects
 
 ```
 API Integrations:
-└── SFE_GIT_API_INTEGRATION (GitHub access)
++-- SFE_GIT_API_INTEGRATION (GitHub access)
 ```
 
 ### Data Flow Architecture
 
 ```
-┌─────────────────┐
-│  REST API Call  │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ sfe_badge_      │ ← Snowpipe Streaming endpoint
-│ events_pipe     │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ RAW_BADGE_EVENTS│ ← Raw landing table
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ sfe_badge_      │ ← Stream tracks changes
-│ events_stream   │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Task 1: Dedupe  │ ← Runs every 1 min (when activated)
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ STG_BADGE_EVENTS│ ← Staging table (deduplicated)
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Task 2: Enrich  │ ← Runs after Task 1 (when activated)
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ DIM_USERS       │
-│ DIM_ZONES       │
-│ FCT_ACCESS      │ ← Analytics ready
-│   _EVENTS       │
-└─────────────────┘
++-----------------+
+|  REST API Call  |
++--------+--------+
+         |
+         v
++-----------------+
+| sfe_badge_      | <- Snowpipe Streaming endpoint
+| events_pipe     |
++--------+--------+
+         |
+         v
++-----------------+
+| RAW_BADGE_EVENTS| <- Raw landing table
++--------+--------+
+         |
+         v
++-----------------+
+| sfe_badge_      | <- Stream tracks changes
+| events_stream   |
++--------+--------+
+         |
+         v
++-----------------+
+| Task 1: Dedupe  | <- Runs every 1 min (when activated)
++--------+--------+
+         |
+         v
++-----------------+
+| STG_BADGE_EVENTS| <- Staging table (deduplicated)
++--------+--------+
+         |
+         v
++-----------------+
+| Task 2: Enrich  | <- Runs after Task 1 (when activated)
++--------+--------+
+         |
+         v
++-----------------+
+| DIM_USERS       |
+| DIM_ZONES       |
+| FCT_ACCESS      | <- Analytics ready
+|   _EVENTS       |
++-----------------+
 ```
 
 ---
@@ -205,18 +205,18 @@ API Integrations:
 ### Why Git Integration?
 
 **Traditional Deployment:**
-1. ❌ Download SQL files to local machine
-2. ❌ Upload files to Snowflake stage
-3. ❌ Execute scripts one by one
-4. ❌ Update files when changes occur
-5. ❌ Re-upload and re-execute
+1. NOT Download SQL files to local machine
+2. NOT Upload files to Snowflake stage
+3. NOT Execute scripts one by one
+4. NOT Update files when changes occur
+5. NOT Re-upload and re-execute
 
 **Git-Based Deployment:**
-1. ✅ Snowflake connects directly to GitHub
-2. ✅ Executes scripts directly from repository
-3. ✅ Always uses latest version
-4. ✅ No manual file management
-5. ✅ Version controlled deployment
+1. OK Snowflake connects directly to GitHub
+2. OK Executes scripts directly from repository
+3. OK Always uses latest version
+4. OK No manual file management
+5. OK Version controlled deployment
 
 ### How It Works
 
@@ -226,38 +226,38 @@ sequenceDiagram
     participant SF as Snowflake Account
     participant API as Git API Integration
     participant GH as GitHub Repository
-    
+
     User->>SF: Run @deploy_all.sql
     SF->>API: Create SFE_GIT_API_INTEGRATION
-    API-->>SF: ✓ Integration created
-    
+    API-->>SF: OK Integration created
+
     SF->>API: Create Git Repository object
-    API->>GH: Connect to github.com/sfc-gh-miwhitaker/sfe-simple-stream
-    GH-->>API: ✓ Connected (read-only)
-    API-->>SF: ✓ Repository mounted
-    
+    API->>GH: Connect to github.com/sfc-gh-se-community/sfe-simple-stream
+    GH-->>API: OK Connected (read-only)
+    API-->>SF: OK Repository mounted
+
     User->>SF: EXECUTE IMMEDIATE FROM @repo/branches/main/sql/02_core/01_core.sql
     SF->>GH: Fetch sql/02_core/01_core.sql
     GH-->>SF: [SQL script content]
     SF->>SF: Execute SQL commands
-    SF-->>User: ✓ Script executed
-    
+    SF-->>User: OK Script executed
+
     Note over User,GH: Repeat for all deployment scripts
-    
-    SF-->>User: ✓ Deployment complete
+
+    SF-->>User: OK Deployment complete
 ```
 
 ### Security
 
 **Read-Only Access:**
-- ✅ Snowflake can only READ from GitHub
-- ✅ Cannot push changes or write files
-- ✅ No credentials stored (public repository)
+- OK Snowflake can only READ from GitHub
+- OK Cannot push changes or write files
+- OK No credentials stored (public repository)
 
 **Limited Scope:**
-- ✅ API integration restricted to `https://github.com/` only
-- ✅ Cannot access other domains
-- ✅ Shared safely across demo projects
+- OK API integration restricted to `https://github.com/` only
+- OK Cannot access other domains
+- OK Shared safely across demo projects
 
 ---
 
@@ -269,8 +269,8 @@ Tasks are deployed but **not yet running**. They require authentication configur
 
 | Task | Schedule | Status | Reason |
 |------|----------|--------|--------|
-| sfe_raw_to_staging_task | Every 1 minute | ⏸️ SUSPENDED | Awaiting activation |
-| sfe_staging_to_analytics_task | After parent task | ⏸️ SUSPENDED | Awaiting activation |
+| sfe_raw_to_staging_task | Every 1 minute | SUSPENDED SUSPENDED | Awaiting activation |
+| sfe_staging_to_analytics_task | After parent task | SUSPENDED SUSPENDED | Awaiting activation |
 
 **To activate tasks:** Complete authentication setup in the next guide.
 
@@ -280,7 +280,7 @@ The Snowpipe Streaming endpoint is **ready immediately**:
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| sfe_badge_events_pipe | ✅ RUNNING | Ready to receive data |
+| sfe_badge_events_pipe | OK RUNNING | Ready to receive data |
 
 **To use pipe:** Complete authentication setup, then send test events.
 
@@ -290,10 +290,27 @@ Dimension tables are pre-loaded with sample data:
 
 ```sql
 -- View sample users
-SELECT * FROM ANALYTICS_LAYER.DIM_USERS;
+SELECT
+  user_id,
+  user_name,
+  user_type,
+  department,
+  clearance_level,
+  is_active,
+  is_current
+FROM SNOWFLAKE_EXAMPLE.ANALYTICS_LAYER.DIM_USERS;
 
 -- View sample zones
-SELECT * FROM ANALYTICS_LAYER.DIM_ZONES;
+SELECT
+  zone_id,
+  building_name,
+  floor_number,
+  zone_name,
+  zone_type,
+  requires_clearance,
+  is_restricted,
+  is_monitored
+FROM SNOWFLAKE_EXAMPLE.ANALYTICS_LAYER.DIM_ZONES;
 ```
 
 **Expected Output:**
@@ -306,8 +323,8 @@ SELECT * FROM ANALYTICS_LAYER.DIM_ZONES;
 
 ### "API Integration already exists"
 
-**Symptom:** `Object 'SFE_GIT_API_INTEGRATION' already exists`  
-**Cause:** Integration was created in a previous deployment  
+**Symptom:** `Object 'SFE_GIT_API_INTEGRATION' already exists`
+**Cause:** Integration was created in a previous deployment
 **Fix:** This is OK! The script uses `CREATE ... IF NOT EXISTS`, so it's safe to re-run. The existing integration will be reused.
 
 **Verify:**
@@ -317,8 +334,8 @@ SHOW API INTEGRATIONS LIKE 'SFE_GIT%';
 
 ### "Access denied to GitHub"
 
-**Symptom:** `Access Denied` error when creating Git repository  
-**Cause:** Network policy blocking github.com or API integration not enabled  
+**Symptom:** `Access Denied` error when creating Git repository
+**Cause:** Network policy blocking github.com or API integration not enabled
 **Fix:**
 ```sql
 -- Verify integration is enabled
@@ -332,8 +349,8 @@ ALTER API INTEGRATION SFE_GIT_API_INTEGRATION SET ENABLED = TRUE;
 
 ### "Script not found in repository"
 
-**Symptom:** `File not found: @repo/branches/main/sql/...`  
-**Cause:** Repository structure changed or network issue  
+**Symptom:** `File not found: @repo/branches/main/sql/...`
+**Cause:** Repository structure changed or network issue
 **Fix:**
 ```sql
 -- Verify repository is accessible
@@ -345,14 +362,14 @@ LIST @sfe_simple_stream_repo/branches/main/sql/;
 
 ### "Validation shows missing objects"
 
-**Symptom:** Validation query shows < 4 schemas or < 5 tables  
-**Cause:** Partial deployment failure  
+**Symptom:** Validation query shows < 4 schemas or < 5 tables
+**Cause:** Partial deployment failure
 **Fix:** Re-run the deployment script - it's idempotent and safe to run multiple times.
 
 ### "Warehouse timeout"
 
-**Symptom:** Query times out after 300 seconds  
-**Cause:** Warehouse too small or suspended  
+**Symptom:** Query times out after 300 seconds
+**Cause:** Warehouse too small or suspended
 **Fix:**
 ```sql
 -- Resume warehouse
@@ -439,9 +456,9 @@ ALTER GIT REPOSITORY sfe_simple_stream_repo FETCH;
 
 ### Immediate Next Steps
 
-✅ **Deployment Complete!**
+OK **Deployment Complete!**
 
-**→ Next:** [`03-TESTING.md`](03-TESTING.md) - Configure authentication and send test events (10 minutes)
+**-> Next:** [`03-TESTING.md`](03-TESTING.md) - Configure authentication and send test events (10 minutes)
 
 ### Optional: Deep Dive
 
@@ -463,4 +480,3 @@ Before testing, you may want to:
 ### External Data Providers
 - [`06-DATA-PROVIDER-QUICKSTART.md`](06-DATA-PROVIDER-QUICKSTART.md) - **Send to vendors** (10-minute integration)
 - [`05-API-HANDOFF.md`](05-API-HANDOFF.md) - Complete API reference
-
