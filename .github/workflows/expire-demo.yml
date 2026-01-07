@@ -26,7 +26,7 @@ jobs:
           import re
           p = pathlib.Path("deploy_all.sql")
           text = p.read_text(encoding="utf-8", errors="replace")
-          m = re.search(r"^\\s*\\*\\s*EXPIRES:\\s*(\\d{4}-\\d{2}-\\d{2})\\s*$", text, re.M)
+          m = re.search(r"^\s*\*\s*EXPIRES:\s*(\d{4}-\d{2}-\d{2})\s*$", text, re.M)
           if not m:
             raise SystemExit("ERROR: Could not find header line '* EXPIRES: YYYY-MM-DD' in deploy_all.sql")
           expires = dt.date.fromisoformat(m.group(1))
