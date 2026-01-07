@@ -2,34 +2,80 @@
 ![Ready to Run](https://img.shields.io/badge/Ready%20to%20Run-Yes-green)
 ![Expires](https://img.shields.io/badge/Expires-2026--02--05-orange)
 
-# Simple Stream
+# Simple Streaming Pipeline (Snowpipe Streaming)
+
+This repository is a **Snowflake-native reference implementation** for high-speed JSON event ingestion using **Snowpipe Streaming**, plus a small analytics layer and operational monitoring.
 
 DEMONSTRATION PROJECT - ACTIVE (timeboxed)
-
-This demo uses Snowflake features current as of December 2025. It is timeboxed to prevent users from encountering outdated syntax or deprecated features.
-
 Author: SE Community
-Purpose: Reference implementation for high-speed data ingestion with Snowpipe Streaming
 Created: 2025-12-02 | Expires: 2026-02-05 | Status: ACTIVE
 
-## First Time Here?
+Deployment is **blocked by `deploy_all.sql` after the expiration date** (the expiration date is the single source of truth used by automation).
 
-Deployment is blocked by `deploy_all.sql` after the expiration date.
+## What you get
 
-Read these in order:
-1. `docs/01-SETUP.md` - Prereqs and account setup
-2. `docs/02-DEPLOYMENT.md` - Deployment flow and what gets created
-3. `docs/03-TESTING.md` - Optional simulator-based testing
-4. `docs/04-MONITORING.md` - Monitoring views and operational checks
-5. `docs/07-STREAMLIT-DASHBOARD.md` - Native Streamlit dashboard
-6. `sql/99_cleanup/cleanup.sql` - Teardown
+- **Ingestion landing zone**: `SNOWFLAKE_EXAMPLE.RAW_INGESTION.RAW_BADGE_EVENTS` (JSON events)
+- **Automated processing**: stream + tasks to transform raw events into analytics tables
+- **Operational monitoring**: monitoring views (health, freshness, latency, throughput, cost)
+- **Optional dashboard**: a **native Streamlit app that runs in Snowflake** for real-time visibility
+- **Clean teardown**: one SQL script removes demo objects while preserving `SNOWFLAKE_EXAMPLE`
 
-## Repository Layout
+## Deploy in Snowsight (45-60 seconds)
+
+1. Open Snowsight and create a new SQL worksheet.
+2. Copy the full contents of `deploy_all.sql` into the worksheet.
+3. Click **Run All**.
+
+Notes:
+- **Warehouse**: tasks and Streamlit default to `COMPUTE_WH`. If your account doesn't have it, create it or adapt the warehouse in the SQL scripts.
+- **Idempotent**: scripts are safe to re-run; the demo is designed for iterative walkthroughs.
+
+## First time here? Pick your path
+
+- **Snowflake admin / deployer**
+  - Start with `QUICKSTART.md` (fastest deploy walkthrough)
+  - Then read `docs/01-SETUP.md` and `docs/02-DEPLOYMENT.md`
+- **Data provider / vendor integrating a stream**
+  - Start with `docs/06-DATA-PROVIDER-QUICKSTART.md`
+  - Then see `docs/05-API-HANDOFF.md` for the handoff contract and event format
+- **Operator / analyst**
+  - Start with `docs/04-MONITORING.md`
+  - Optional: `docs/07-STREAMLIT-DASHBOARD.md` for the native dashboard
+
+## Optional: deploy the native Streamlit dashboard
+
+Run this in Snowsight after the core deployment:
+
+```sql
+@sql/05_streamlit/deploy_streamlit.sql
+```
+
+The app appears in Snowsight under **Projects -> Streamlit**.
+
+## Clean up (teardown)
+
+To remove demo objects:
+
+```sql
+@sql/99_cleanup/cleanup.sql
+```
+
+This removes the demo schemas and repo objects but **preserves** the `SNOWFLAKE_EXAMPLE` database and the shared API integration `SFE_GIT_API_INTEGRATION`.
+
+## Architecture diagrams
+
+Mermaid diagrams live in `diagrams/`:
+- `diagrams/data-model.md`
+- `diagrams/data-flow.md`
+- `diagrams/network-flow.md`
+- `diagrams/auth-flow.md`
+
+## Repository layout
 
 - `deploy_all.sql`: Snowsight "Run All" deployment entry point (enforces expiration)
-- `sql/`: Idempotent SQL scripts for core objects, transformations, monitoring, and cleanup
-- `docs/`: Numbered user guides
-- `diagrams/`: Mandatory Mermaid architecture diagrams
-- `tools/`: Optional local helpers (key generation + simulator orchestration)
-- `simulator/`: Optional event generator
-- `streamlit/`: Native Streamlit dashboard app (deployed inside Snowflake)
+- `sql/`: idempotent SQL scripts (core objects, transformations, monitoring, Streamlit, cleanup)
+- `docs/`: numbered user guides (setup, deployment, testing, monitoring, security)
+- `diagrams/`: architecture diagrams (Mermaid)
+- `tools/`: optional local helpers (simulator orchestration)
+- `simulator/`: optional event generator
+- `streamlit/`: native Streamlit dashboard app (deployed inside Snowflake)
